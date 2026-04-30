@@ -33,7 +33,7 @@ Il permet à un joueur de consulter l'équipement de ses personnages, de découv
 
 ## Prérequis
 
-- **Node.js** ≥ 18.18 (recommandé : 20.x LTS)
+- **Node.js** 24.x LTS (géré via `.nvmrc` — `nvm use`)
 - **npm** ≥ 9 (ou pnpm / yarn)
 
 ---
@@ -101,6 +101,7 @@ azero/
 │     ├─ characters/[id]/route.ts
 │     ├─ items/[id]/sources/route.ts
 │     └─ items/slot/[slot]/route.ts
+├─ proxy.ts                    # Garde de routes (redirect /auth ↔ /)
 ├─ components/
 │  ├─ layout/         # Header, CharacterBar
 │  ├─ character/      # CharacterDropdown, CharAvatar, StatChip
@@ -113,7 +114,6 @@ azero/
 │  └─ auth.ts         # Hash bcrypt + JWT (jose) + cookie httpOnly
 ├─ store/
 │  └─ character-store.ts   # Zustand : personnage sélectionné, catégorie, item actif
-├─ middleware.ts            # Garde de routes (redirect /auth ↔ /)
 ├─ .env.local.example
 └─ package.json
 ```

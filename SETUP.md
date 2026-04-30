@@ -1,11 +1,11 @@
 # Azero — Setup
 
-Dashboard Armory pour World of Warcraft (Next.js 14 + TypeScript).
+Dashboard Armory pour World of Warcraft (Next.js 16 + TypeScript).
 Cette V1 utilise des **données mockées** (3 personnages factices) et une auth locale (cookie JWT signé, store utilisateurs en mémoire).
 
 ## Prérequis
 
-- **Node.js** ≥ 18.18 (recommandé : 20.x LTS)
+- **Node.js** 24.x LTS (géré via `.nvmrc` — `nvm use`)
 - **npm** ≥ 9 (ou pnpm / yarn — adapter les commandes)
 
 ## Installation
@@ -81,7 +81,7 @@ azero/
 │  └─ auth.ts               # Hash bcrypt + JWT (jose) + cookie httpOnly
 ├─ store/
 │  └─ character-store.ts    # Zustand : sélection perso, catégorie, item actif
-├─ middleware.ts            # Garde de routes (redirect /auth ↔ /)
+├─ proxy.ts                 # Garde de routes (redirect /auth ↔ /)
 ├─ next.config.mjs
 ├─ tailwind.config.ts
 ├─ postcss.config.mjs
@@ -107,7 +107,7 @@ azero/
 
 ## Stack
 
-- **Next.js 14** (App Router, route handlers, middleware)
+- **Next.js 16** (App Router, route handlers, proxy)
 - **TypeScript strict**
 - **Tailwind CSS** (config minimal — la fidélité visuelle s'appuie sur les tokens CSS du design system + styles inline issus du prototype)
 - **Zustand** pour l'état UI (perso sélectionné, item actif, catégorie)
@@ -117,7 +117,7 @@ azero/
 ## Comportements implémentés (V1)
 
 - ✅ Auth email/mot de passe (inscription, login, logout) via cookie httpOnly signé
-- ✅ Garde de routes via `middleware.ts` (toute page hors `/auth` redirige vers l'auth si non connecté)
+- ✅ Garde de routes via `proxy.ts` (toute page hors `/auth` redirige vers l'auth si non connecté)
 - ✅ Dashboard 3 colonnes : 8 slots gauche · portrait + avatar SVG · 8 slots droite
 - ✅ Sélection de personnage via dropdown (3 personnages mockés ; clic extérieur ferme)
 - ✅ Stat chips inline (Or, iLvl, M+)
