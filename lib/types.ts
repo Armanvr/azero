@@ -102,11 +102,14 @@ export interface Character {
 }
 
 export interface User {
-  id: string;
-  email: string;
-  username: string;
-  passwordHash: string;
-  createdAt: string;
+  id: string
+  email: string
+  username: string
+  passwordHash: string
+  createdAt: string
+  bnetAccessToken?: string
+  bnetTokenExpiry?: number
+  bnetConnected?: boolean
 }
 
 export interface SessionPayload {
@@ -123,4 +126,19 @@ export interface SelectedItem {
   enchant?: string | null;
   slot?: string;
   isSet?: boolean;
+}
+
+export interface BnetCharacter {
+  _id?: string
+  userId: string
+  name: string
+  realm: string
+  realmSlug: string
+  classId: number
+  className: string
+  raceId: number
+  raceName: string
+  level: number
+  faction: 'horde' | 'alliance'
+  fetchedAt: string
 }
