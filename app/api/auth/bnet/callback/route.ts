@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import { readSession } from '@/lib/auth'
 import { usersDb, charactersDb } from '@/lib/db'
 import type { BnetCharacter } from '@/lib/types'
@@ -30,17 +31,33 @@ export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
   const code = searchParams.get('code')
   const error = searchParams.get('error')
+  const stateParam = searchParams.get('state')
 
   if (error || !code) {
     return NextResponse.redirect(new URL('/profil?error=bnet_denied', req.url))
   }
 
+  const cookieStore = await cookies()
+  const storedState = cookieStore.get('bnet_oauth_state')?.value
+
+  if (!storedState || !stateParam || storedState !== stateParam) {
+    cookieStore.delete('bnet_oauth_state')
+    return NextResponse.redirect(new URL('/profil?error=bnet_invalid_state', req.url))
+  }
+
+  cookieStore.delete('bnet_oauth_state')
+
   const session = await readSession()
   if (!session) return NextResponse.redirect(new URL('/auth', req.url))
 
-  const credentials = Buffer.from(
-    `${process.env.BNET_CLIENT_ID}:${process.env.BNET_CLIENT_SECRET}`
-  ).toString('base64')
+  const clientId = process.env.BNET_CLIENT_ID
+  const clientSecret = process.env.BNET_CLIENT_SECRET
+  const redirectUri = process.env.BNET_REDIRECT_URI
+  if (!clientId || !clientSecret || !redirectUri) {
+    return NextResponse.redirect(new URL('/profil?error=bnet_not_configured', req.url))
+  }
+
+  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
 
   const tokenRes = await fetch('https://oauth.battle.net/token', {
     method: 'POST',
@@ -51,7 +68,7 @@ export async function GET(req: NextRequest) {
     body: new URLSearchParams({
       grant_type: 'authorization_code',
       code,
-      redirect_uri: process.env.BNET_REDIRECT_URI!,
+      redirect_uri: redirectUri,
     }).toString(),
   })
 
