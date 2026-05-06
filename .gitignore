@@ -1,13 +1,27 @@
+# Dependencies
 node_modules/
+
+# Next.js build output
 .next/
 out/
 build/
+
+# Environment variables
 .env
 .env.local
 .env*.local
-.DS_Store
+
+# TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# OS
+.DS_Store
+
+# IDEs
 .vscode/
 .idea/
+.claude/
+
+# Project-specific
 design/
