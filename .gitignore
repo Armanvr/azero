@@ -25,3 +25,6 @@ next-env.d.ts
 
 # Project-specific
 design/
+
+# NeDB data files
+data/
