@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 
-type Page = "home" | "metiers" | "collections";
+type Page = "home" | "metiers" | "collections" | "profil";
 
 interface NavItem {
   label: string;
@@ -12,16 +12,12 @@ interface NavItem {
 const NAV: NavItem[] = [
   { label: "ACCUEIL", page: "home", href: "/" },
   { label: "MÉTIERS", page: "metiers", href: "/metiers" },
-  { label: "COLLECTIONS", page: "collections", href: "/metiers" }
+  { label: "COLLECTIONS", page: "collections", href: "/metiers" },
+  { label: "PROFIL", page: "profil", href: "/profil" }
 ];
 
 export default function Header({ active }: { active: Page }) {
   const router = useRouter();
-
-  async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.replace("/auth");
-  }
 
   return (
     <header
@@ -91,8 +87,8 @@ export default function Header({ active }: { active: Page }) {
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <button
-          onClick={logout}
-          title="Déconnexion"
+          onClick={() => router.push("/profil")}
+          title="Profil"
           style={{
             width: 28,
             height: 28,
