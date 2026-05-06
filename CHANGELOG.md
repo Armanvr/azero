@@ -6,6 +6,23 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 
 ---
 
+## [0.1.1] — 2026-05-06
+
+### Modifié
+
+- Remplacement de `next lint` (ESLint) par **Biome** pour le linting
+- Ajout des scripts `lint` (`biome lint .`) et `lint:fix` (`biome lint --write --unsafe .`)
+- Ajout du script `format` (`biome format --write .`)
+- Suppression des scripts `biome:*` redondants
+- Suppression de `postcss.config.mjs` — config PostCSS déplacée dans `package.json` (section `"postcss"`)
+- Suppression de `autoprefixer` (inutile avec Tailwind v4 + Lightning CSS)
+- Déplacement de `@tailwindcss/postcss` de `dependencies` vers `devDependencies`
+- Mise à jour : `zustand` 5.0.13
+- Suppression de `postcss`
+- Version bump : 0.1.0 → 0.1.1
+
+---
+
 ## [0.1.0] — 2026-04-30
 
 Première version fonctionnelle (V1) — données mockées, auth locale.

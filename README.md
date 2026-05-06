@@ -23,10 +23,10 @@ Il permet à un joueur de consulter l'équipement de ses personnages, de découv
 |---|---|
 | Framework | Next.js (App Router) |
 | Langage | TypeScript strict |
-| Style | Tailwind CSS + tokens CSS custom |
+| Style | Tailwind CSS v4 + tokens CSS custom |
 | État UI | Zustand |
 | Auth | JWT signé HS256 (jose) + bcryptjs |
-| Linter/Formatter | Biome |
+| Lint/Format | Biome (`lint`, `lint:fix`, `format`) |
 | Polices | Rajdhani · Exo 2 (Google Fonts) |
 
 ---

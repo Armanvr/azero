@@ -1,34 +1,29 @@
 {
 	"name": "azero",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"private": true,
 	"scripts": {
-		"biome:check": "biome check",
-		"biome:fix": "biome check --write",
-		"biome:format": "biome format --write",
-		"biome:lint": "biome lint --write",
 		"dev": "next dev",
 		"build": "next build",
 		"start": "next start",
-		"lint": "next lint"
+		"lint": "biome lint .",
+		"lint:fix": "biome lint --write --unsafe .",
+		"format": "biome format --write ."
 	},
 	"dependencies": {
-		"@tailwindcss/postcss": "^4.2.4",
 		"bcryptjs": "^3.0.3",
 		"jose": "^6.2.3",
 		"next": "^16.2.4",
 		"react": "^19.2.5",
 		"react-dom": "^19.2.5",
-		"zustand": "^5.0.12"
+		"zustand": "^5.0.13"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.4.13",
+		"@biomejs/biome": "^2.4.14",
 		"@types/bcryptjs": "^3.0.0",
 		"@types/node": "^25.6.0",
 		"@types/react": "^19.2.14",
 		"@types/react-dom": "^19.2.3",
-		"autoprefixer": "^10.4.20",
-		"postcss": "^8.4.47",
 		"tailwindcss": "^4.2.4",
 		"typescript": "^6.0.3"
 	}

@@ -84,7 +84,6 @@ azero/
 ├─ proxy.ts                 # Garde de routes (redirect /auth ↔ /)
 ├─ next.config.mjs
 ├─ tailwind.config.ts
-├─ postcss.config.mjs
 ├─ tsconfig.json
 ├─ .env.local.example
 └─ package.json
@@ -109,10 +108,22 @@ azero/
 
 - **Next.js 16** (App Router, route handlers, proxy)
 - **TypeScript strict**
-- **Tailwind CSS** (config minimal — la fidélité visuelle s'appuie sur les tokens CSS du design system + styles inline issus du prototype)
+- **Tailwind CSS v4** (config `tailwind.config.ts` — tokens CSS custom via `--variables`)
 - **Zustand** pour l'état UI (perso sélectionné, item actif, catégorie)
 - **jose** (JWT signé HS256) pour les sessions, **bcryptjs** pour le hash mot de passe
+- **Biome** — lint (`npm run lint`) et format (`npm run format`). Pas d'ESLint ni Prettier.
 - Polices : **Rajdhani** (titres / items) et **Exo 2** (UI / corps), via Google Fonts
+
+## Commandes utiles
+
+| Commande | Description |
+| --- | --- |
+| `npm run dev` | Serveur de développement (http://localhost:3000) |
+| `npm run build` | Build de production |
+| `npm start` | Démarrer le build de production |
+| `npm run lint` | Lint Biome (lecture seule) |
+| `npm run lint:fix` | Lint Biome + corrections automatiques (unsafe) |
+| `npm run format` | Formattage Biome |
 
 ## Comportements implémentés (V1)
 
