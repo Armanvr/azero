@@ -14,31 +14,12 @@ export default function CharacterBar({ characters, selectedId, onSelect }: Props
   if (!char) return null;
 
   return (
-    <div
-      style={{
-        background: "var(--surface)",
-        borderBottom: "1px solid var(--border)",
-        padding: "0 20px",
-        height: 48,
-        display: "flex",
-        alignItems: "center",
-        gap: 16,
-        flexShrink: 0,
-        zIndex: 10
-      }}
-    >
-      <span
-        style={{
-          fontSize: 11,
-          color: "var(--text-muted)",
-          letterSpacing: "0.5px",
-          whiteSpace: "nowrap"
-        }}
-      >
+    <div className="bg-surface border-b border-border px-5 h-12 flex items-center gap-4 shrink-0 z-10">
+      <span className="text-[11px] text-text-muted tracking-[0.5px] whitespace-nowrap">
         PERSONNAGE
       </span>
       <CharacterDropdown characters={characters} selectedId={selectedId} onSelect={onSelect} />
-      <div style={{ display: "flex", gap: 16, marginLeft: 8 }}>
+      <div className="flex gap-4 ml-2">
         <StatChip icon="💰" value={char.gold.toLocaleString()} color="var(--gold-light)" />
         <StatChip icon="⚔️" value={`iLvl ${char.ilvl}`} color="var(--text-dim)" />
         <StatChip icon="🏆" value={`M+ ${char.score}`} color="var(--purple)" />

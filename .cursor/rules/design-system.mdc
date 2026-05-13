@@ -1,0 +1,92 @@
+---
+description: AZERO Design System - Typography, colors, spacing standards
+alwaysApply: true
+---
+
+# AZERO Design System
+
+Refer to `/docs/design-system.md` for the complete design system documentation.
+
+## Critical Rules
+
+### Typography
+
+**Text size = 16px minimum for standard content**
+
+- `text-base` (16px) is the **default** for all standard text (paragraphs, descriptions, content)
+- `text-sm` (12px) only for secondary information (metadata, sub-labels)
+- `text-xs` (10px) only for labels, timestamps, minimal metadata
+- Never use arbitrary sizes like `text-[13px]` — always use the defined scale
+
+**Font families:**
+- `font-exo` (default) for UI text
+- `font-rajdhani` for titles, labels in caps, gaming elements
+
+### Colors
+
+Always use semantic color classes from the design system:
+
+```tsx
+// ✅ GOOD
+<p className="text-text">Main text</p>
+<span className="text-text-dim">Secondary</span>
+
+// ❌ BAD
+<p className="text-gray-200">Main text</p>
+<span style={{ color: '#888' }}>Secondary</span>
+```
+
+### Spacing
+
+Use multiples of 4px via Tailwind utilities (`gap-1`, `gap-2`, `p-4`, etc.).
+
+Never use arbitrary values unless absolutely necessary.
+
+### Component Creation
+
+When creating a new component:
+1. Check existing components in `/components` for similar patterns
+2. Use the defined typography scale (never `text-[13px]`, always `text-sm` or `text-base`)
+3. Respect elevation hierarchy: `bg` < `surface` < `surface2` < `surface3`
+4. Add `transition-all duration-150` for interactive elements
+5. Use semantic color classes (`text-text`, `bg-surface`, `border-border`)
+
+### Example: Correct Component
+
+```tsx
+// ✅ GOOD
+function InfoCard({ title, content }) {
+  return (
+    <div className="bg-surface border border-border rounded-lg p-6">
+      <h3 className="text-lg font-rajdhani font-bold text-gold-light mb-2">
+        {title}
+      </h3>
+      <p className="text-base text-text">
+        {content}
+      </p>
+    </div>
+  );
+}
+
+// ❌ BAD
+function InfoCard({ title, content }) {
+  return (
+    <div style={{ background: '#13131a', border: '1px solid #2a2a3a', padding: 20 }}>
+      <h3 style={{ fontSize: 18, fontWeight: 700 }}>{title}</h3>
+      <p style={{ fontSize: 13 }}>{content}</p>
+    </div>
+  );
+}
+```
+
+## Quick Reference
+
+| Element | Class |
+|---------|-------|
+| Main text | `text-base text-text` (16px) |
+| Secondary text | `text-sm text-text-dim` (12px) |
+| Labels | `text-xs text-text-muted uppercase tracking-wider` (10px) |
+| Title | `text-lg font-rajdhani font-bold` (20px) |
+| Card | `bg-surface border border-border rounded-lg p-6` |
+| Button | `bg-gold text-[#0c0c10] px-4 py-3 rounded font-bold` |
+| Input | `bg-surface2 border border-border2 px-3 py-2.5 text-base focus:border-gold` |
