@@ -14,27 +14,12 @@ export default function ItemSlot({ slot, side, isActive, onSelect }: Props) {
 
   const Icon = (
     <div
-      style={{
-        width: 32,
-        height: 32,
-        borderRadius: 3,
-        background: `${rc}18`,
-        border: `1px solid ${rc}44`,
-        flexShrink: 0,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center"
-      }}
+      className="w-8 h-8 rounded-[3px] shrink-0 flex items-center justify-center"
+      style={{ background: `${rc}18`, border: `1px solid ${rc}44` }}
     >
       <span
-        style={{
-          fontSize: 9,
-          color: rc,
-          fontFamily: "Rajdhani",
-          fontWeight: 700,
-          textAlign: "center",
-          lineHeight: 1.1
-        }}
+        className="text-[9px] font-rajdhani font-bold text-center leading-[1.1]"
+        style={{ color: rc }}
       >
         {slot.label.slice(0, 3).toUpperCase()}
       </span>
@@ -52,60 +37,24 @@ export default function ItemSlot({ slot, side, isActive, onSelect }: Props) {
           slot: slot.label
         })
       }
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        padding: "6px 8px",
-        borderRadius: 4,
-        background: isActive ? "var(--surface3)" : "var(--surface2)",
-        border: `1px solid ${isActive ? rc + "88" : "var(--border)"}`,
-        cursor: "pointer",
-        transition: "all 0.15s",
-        minHeight: 44
-      }}
-      onMouseEnter={(e) => {
-        if (!isActive) {
-          e.currentTarget.style.borderColor = "var(--border2)";
-          e.currentTarget.style.background = "var(--surface3)";
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!isActive) {
-          e.currentTarget.style.borderColor = "var(--border)";
-          e.currentTarget.style.background = "var(--surface2)";
-        }
-      }}
+      className={`flex items-center gap-2 px-2 py-[6px] rounded cursor-pointer transition-all duration-150 min-h-[44px] border
+        ${isActive ? "bg-surface3" : "bg-surface2 hover:bg-surface3"}`}
+      style={{ borderColor: isActive ? `${rc}88` : "var(--border)" }}
+      onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.borderColor = "var(--border2)"; }}
+      onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.borderColor = "var(--border)"; }}
     >
       {side === "left" && Icon}
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div className="flex-1 min-w-0">
         <div
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: rc,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            fontFamily: "Rajdhani",
-            letterSpacing: "0.3px"
-          }}
+          className="text-[11px] font-semibold font-rajdhani tracking-[0.3px] whitespace-nowrap overflow-hidden text-ellipsis"
+          style={{ color: rc }}
         >
           {slot.item}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
-          <span style={{ fontSize: 10, color: "var(--text-dim)", fontWeight: 500 }}>iLvl {slot.ilvl}</span>
+        <div className="flex items-center gap-[6px] mt-0.5">
+          <span className="text-[10px] text-text-dim font-medium">iLvl {slot.ilvl}</span>
           {slot.enchant && (
-            <span
-              style={{
-                fontSize: 9,
-                color: "var(--blue)",
-                opacity: 0.7,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis"
-              }}
-            >
+            <span className="text-[9px] text-blue opacity-70 whitespace-nowrap overflow-hidden text-ellipsis">
               ✦ {slot.enchant}
             </span>
           )}

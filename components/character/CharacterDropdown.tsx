@@ -24,56 +24,29 @@ export default function CharacterDropdown({ characters, selectedId, onSelect }: 
   if (!current) return null;
 
   return (
-    <div ref={ref} style={{ position: "relative" }}>
+    <div ref={ref} className="relative">
       <button
+        type="button"
         onClick={() => setOpen((o) => !o)}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: "6px 12px 6px 10px",
-          background: "var(--surface2)",
-          border: "1px solid var(--border2)",
-          borderRadius: 4,
-          cursor: "pointer",
-          color: "var(--text)",
-          fontFamily: "'Exo 2', sans-serif",
-          minWidth: 220
-        }}
+        className="flex items-center gap-2.5 pl-2.5 pr-3 py-1.5 bg-surface2 border border-border2 rounded cursor-pointer text-text font-exo min-w-[220px]"
       >
         <span
-          style={{
-            width: 6,
-            height: 6,
-            borderRadius: "50%",
-            background: current.faction === "horde" ? "#f87171" : "#38bdf8",
-            flexShrink: 0
-          }}
+          className="w-1.5 h-1.5 rounded-full shrink-0"
+          style={{ background: current.faction === "horde" ? "#f87171" : "#38bdf8" }}
         />
-        <span style={{ flex: 1, textAlign: "left", fontSize: 13, fontWeight: 600, color: current.color }}>
+        <span className="flex-1 text-left text-sm font-semibold" style={{ color: current.color }}>
           {current.name}
         </span>
-        <span style={{ fontSize: 10, color: "var(--text-dim)" }}>
+        <span className="text-xs text-text-dim">
           {current.class} · {current.realm}
         </span>
-        <span style={{ fontSize: 10, color: "var(--text-muted)", marginLeft: 4 }}>▾</span>
+        <span className="text-xs text-text-muted ml-1">▾</span>
       </button>
 
       {open && (
         <div
-          style={{
-            position: "absolute",
-            top: "calc(100% + 4px)",
-            left: 0,
-            background: "var(--surface)",
-            border: "1px solid var(--border2)",
-            borderRadius: 6,
-            overflow: "hidden",
-            zIndex: 100,
-            minWidth: 260,
-            boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
-            animation: "fadeIn 0.15s ease"
-          }}
+          className="absolute top-[calc(100%+4px)] left-0 bg-surface border border-border2 rounded-[6px] overflow-hidden z-[100] min-w-[260px] shadow-[0_8px_24px_rgba(0,0,0,0.4)]"
+          style={{ animation: "fadeIn 0.15s ease" }}
         >
           {characters.map((c) => (
             <div
@@ -82,49 +55,25 @@ export default function CharacterDropdown({ characters, selectedId, onSelect }: 
                 onSelect(c.id);
                 setOpen(false);
               }}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "10px 14px",
-                cursor: "pointer",
-                background: c.id === selectedId ? "var(--surface3)" : "transparent",
-                borderBottom: "1px solid var(--border)",
-                transition: "background 0.1s"
-              }}
-              onMouseEnter={(e) => {
-                if (c.id !== selectedId) e.currentTarget.style.background = "var(--surface2)";
-              }}
-              onMouseLeave={(e) => {
-                if (c.id !== selectedId) e.currentTarget.style.background = "transparent";
-              }}
+              className={`flex items-center gap-2.5 px-3.5 py-2.5 cursor-pointer border-b border-border transition-colors duration-100
+                ${c.id === selectedId ? "bg-surface3" : "bg-transparent hover:bg-surface2"}`}
             >
-              <div
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  background: c.faction === "horde" ? "#f87171" : "#38bdf8",
-                  flexShrink: 0
-                }}
+              <span
+                className="w-1.5 h-1.5 rounded-full shrink-0"
+                style={{ background: c.faction === "horde" ? "#f87171" : "#38bdf8" }}
               />
-              <div style={{ flex: 1 }}>
+              <div className="flex-1">
                 <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: c.color,
-                    fontFamily: "Rajdhani",
-                    letterSpacing: "0.3px"
-                  }}
+                  className="text-sm font-semibold font-rajdhani tracking-wide"
+                  style={{ color: c.color }}
                 >
                   {c.name}
                 </div>
-                <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 1 }}>
+                <div className="text-xs text-text-muted mt-px">
                   {c.race} {c.class} · {c.realm}
                 </div>
               </div>
-              <div style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 600 }}>iLvl {c.ilvl}</div>
+              <div className="text-xs text-text-dim font-semibold">iLvl {c.ilvl}</div>
             </div>
           ))}
         </div>

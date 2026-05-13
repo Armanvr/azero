@@ -49,72 +49,24 @@ export default function AuthPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "var(--bg)",
-        padding: 20
-      }}
-    >
-      <div style={{ position: "fixed", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
-        <div
-          style={{
-            position: "absolute",
-            top: "20%",
-            left: "30%",
-            width: 400,
-            height: 400,
-            borderRadius: "50%",
-            background: "var(--gold)",
-            opacity: 0.03,
-            filter: "blur(80px)"
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            bottom: "20%",
-            right: "25%",
-            width: 300,
-            height: 300,
-            borderRadius: "50%",
-            background: "var(--purple)",
-            opacity: 0.04,
-            filter: "blur(60px)"
-          }}
-        />
+    <div className="min-h-screen flex items-center justify-center bg-bg p-5">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[20%] left-[30%] w-[400px] h-[400px] rounded-full bg-gold opacity-[0.03] blur-[80px]" />
+        <div className="absolute bottom-[20%] right-[25%] w-[300px] h-[300px] rounded-full bg-purple opacity-[0.04] blur-[60px]" />
       </div>
 
-      <div style={{ width: "100%", maxWidth: 380, animation: "fadeIn 0.3s ease" }}>
-        <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <div
-            style={{
-              fontSize: 28,
-              fontFamily: "Rajdhani",
-              fontWeight: 700,
-              letterSpacing: 4,
-              color: "var(--gold-light)"
-            }}
-          >
+      <div className="w-full max-w-[380px]" style={{ animation: "fadeIn 0.3s ease" }}>
+        <div className="text-center mb-8">
+          <div className="text-[28px] font-rajdhani font-bold tracking-[4px] text-gold-light">
             AZERO
           </div>
-          <div style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: 2, marginTop: 4 }}>
+          <div className="text-[11px] text-text-muted tracking-[2px] mt-1">
             ARMORY DASHBOARD
           </div>
         </div>
 
-        <div
-          style={{
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
-            borderRadius: 8,
-            padding: 28
-          }}
-        >
-          <div style={{ marginBottom: 24 }}>
+        <div className="bg-surface border border-border rounded-[8px] p-7">
+          <div className="mb-6">
             <SegmentTabs<Tab>
               tabs={[
                 { id: "login", label: "CONNEXION" },
@@ -128,7 +80,7 @@ export default function AuthPage() {
             />
           </div>
 
-          <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <form onSubmit={submit} className="flex flex-col gap-3">
             {tab === "register" && (
               <Input
                 label="PSEUDO"
@@ -166,16 +118,7 @@ export default function AuthPage() {
             )}
 
             {error && (
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "var(--red)",
-                  padding: "8px 10px",
-                  background: "rgba(248,113,113,0.08)",
-                  borderRadius: 4,
-                  border: "1px solid rgba(248,113,113,0.2)"
-                }}
-              >
+              <div className="text-[11px] text-red px-[10px] py-2 bg-[rgba(248,113,113,0.08)] rounded border border-[rgba(248,113,113,0.2)]">
                 {error}
               </div>
             )}
@@ -187,7 +130,7 @@ export default function AuthPage() {
         </div>
 
         {tab === "login" && (
-          <div style={{ textAlign: "center", marginTop: 16, fontSize: 11, color: "var(--text-muted)" }}>
+          <div className="text-center mt-4 text-[11px] text-text-muted">
             Démo : créez un compte via l&apos;onglet Inscription
           </div>
         )}

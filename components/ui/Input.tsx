@@ -5,39 +5,18 @@ interface Props extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
 }
 
-const Input = forwardRef<HTMLInputElement, Props>(function Input({ label, ...rest }, ref) {
+const Input = forwardRef<HTMLInputElement, Props>(function Input({ label, className = "", ...rest }, ref) {
   return (
     <div>
       {label && (
-        <label
-          style={{
-            fontSize: 11,
-            color: "var(--text-dim)",
-            letterSpacing: "0.5px",
-            marginBottom: 5,
-            display: "block"
-          }}
-        >
+        <label className="text-xs text-text-dim tracking-wider mb-1 block">
           {label}
         </label>
       )}
       <input
         ref={ref}
         {...rest}
-        style={{
-          width: "100%",
-          padding: "10px 12px",
-          background: "var(--surface2)",
-          border: "1px solid var(--border2)",
-          borderRadius: 4,
-          color: "var(--text)",
-          fontSize: 13,
-          fontFamily: "'Exo 2', sans-serif",
-          outline: "none",
-          transition: "border-color 0.15s"
-        }}
-        onFocus={(e) => (e.currentTarget.style.borderColor = "var(--gold)")}
-        onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border2)")}
+        className={`w-full px-3 py-2.5 bg-surface2 border border-border2 rounded text-text text-base font-exo outline-none transition-colors duration-150 focus:border-gold ${className}`}
       />
     </div>
   );

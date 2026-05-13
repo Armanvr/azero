@@ -5,27 +5,17 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
 }
 
-export default function Button({ loading, children, disabled, ...rest }: Props) {
+export default function Button({ loading, children, disabled, className = "", ...rest }: Props) {
   const isDisabled = disabled || loading;
   return (
     <button
       {...rest}
       disabled={isDisabled}
-      style={{
-        marginTop: 4,
-        padding: "11px",
-        background: isDisabled ? "var(--surface3)" : "var(--gold)",
-        color: isDisabled ? "var(--text-dim)" : "#0c0c10",
-        border: "none",
-        borderRadius: 4,
-        fontSize: 13,
-        fontWeight: 700,
-        letterSpacing: 1,
-        fontFamily: "Rajdhani",
-        cursor: isDisabled ? "not-allowed" : "pointer",
-        transition: "all 0.15s",
-        ...rest.style
-      }}
+      className={`mt-1 px-4 py-3 rounded text-sm font-bold tracking-wide font-rajdhani transition-all duration-150 border-none
+        ${isDisabled
+          ? "bg-surface3 text-text-dim cursor-not-allowed"
+          : "bg-gold text-[#0c0c10] cursor-pointer"
+        } ${className}`}
     >
       {loading ? "Chargement..." : children}
     </button>

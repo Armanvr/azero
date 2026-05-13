@@ -51,7 +51,7 @@ export default function HomePage() {
 
   if (loadingChars) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", color: "var(--text-muted)" }}>
+      <div className="flex items-center justify-center h-screen text-text-muted">
         Chargement…
       </div>
     );
@@ -59,32 +59,21 @@ export default function HomePage() {
 
   if (!char) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", color: "var(--text-muted)" }}>
+      <div className="flex items-center justify-center h-screen text-text-muted">
         Aucun personnage disponible.
       </div>
     );
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
+    <div className="flex flex-col h-screen overflow-hidden">
       <Header active="home" />
       <CharacterBar characters={characters} selectedId={char.id} onSelect={selectCharacter} />
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
-        <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 240px 1fr", overflow: "hidden" }}>
-          <div
-            style={{
-              padding: "14px 12px",
-              display: "flex",
-              flexDirection: "column",
-              gap: 6,
-              overflowY: "auto",
-              borderRight: "1px solid var(--border)"
-            }}
-          >
-            <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "1px", marginBottom: 4 }}>
-              ÉQUIPEMENT
-            </div>
+      <div className="flex-1 flex flex-col overflow-hidden relative">
+        <div className="flex-1 grid grid-cols-[1fr_240px_1fr] overflow-hidden">
+          <div className="px-3 py-[14px] flex flex-col gap-[6px] overflow-y-auto border-r border-border">
+            <div className="text-[10px] text-text-muted tracking-[1px] mb-1">ÉQUIPEMENT</div>
             {char.slotsLeft.map((slot) => (
               <ItemSlot
                 key={slot.id}
@@ -96,80 +85,37 @@ export default function HomePage() {
             ))}
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 16,
-              borderRight: "1px solid var(--border)",
-              background: "var(--surface)"
-            }}
-          >
-            <div style={{ marginBottom: 10, textAlign: "center" }}>
+          <div className="flex flex-col items-center justify-center p-4 border-r border-border bg-surface">
+            <div className="mb-[10px] text-center">
               <div
-                style={{
-                  fontSize: 20,
-                  fontFamily: "Rajdhani",
-                  fontWeight: 700,
-                  color: char.color,
-                  letterSpacing: 1
-                }}
+                className="text-[20px] font-rajdhani font-bold tracking-[1px]"
+                style={{ color: char.color }}
               >
                 {char.name}
               </div>
-              <div style={{ fontSize: 10, color: "var(--text-dim)", marginTop: 2 }}>{char.title}</div>
+              <div className="text-[10px] text-text-dim mt-0.5">{char.title}</div>
             </div>
             <CharAvatar character={char} size={160} />
-            <div style={{ marginTop: 12, textAlign: "center" }}>
-              <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 4 }}>
+            <div className="mt-3 text-center">
+              <div className="text-[10px] text-text-muted mb-1">
                 {char.race} {char.spec} {char.class}
               </div>
-              <div style={{ fontSize: 10, color: "var(--text-muted)" }}>
+              <div className="text-[10px] text-text-muted">
                 ‹{char.guild}› {char.realm}
               </div>
-              <div style={{ marginTop: 10, display: "flex", gap: 6, justifyContent: "center" }}>
-                <span
-                  style={{
-                    padding: "3px 8px",
-                    background: "var(--surface3)",
-                    borderRadius: 3,
-                    fontSize: 10,
-                    color: "var(--text-dim)",
-                    border: "1px solid var(--border)"
-                  }}
-                >
+              <div className="mt-[10px] flex gap-[6px] justify-center">
+                <span className="px-2 py-[3px] bg-surface3 rounded-[3px] text-[10px] text-text-dim border border-border">
                   iLvl {char.ilvl}
                 </span>
-                <span
-                  style={{
-                    padding: "3px 8px",
-                    background: "var(--purple-dim)",
-                    borderRadius: 3,
-                    fontSize: 10,
-                    color: "var(--purple)",
-                    border: "1px solid rgba(168,85,247,0.2)"
-                  }}
-                >
+                <span className="px-2 py-[3px] bg-purple-dim rounded-[3px] text-[10px] text-purple border border-[rgba(168,85,247,0.2)]">
                   M+ {char.score}
                 </span>
               </div>
             </div>
           </div>
 
-          <div
-            style={{
-              padding: "14px 12px",
-              display: "flex",
-              flexDirection: "column",
-              gap: 6,
-              overflowY: "auto"
-            }}
-          >
-            <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "1px", marginBottom: 4 }}>
-              ÉQUIPEMENT RESTANT
-            </div>
+          <div className="px-3 py-[14px] flex flex-col gap-[6px] overflow-y-auto">
+            <div className="text-[10px] text-text-muted tracking-[1px] mb-1">ÉQUIPEMENT RESTANT</div>
             {char.slotsRight.map((slot) => (
               <ItemSlot
                 key={slot.id}
@@ -182,59 +128,25 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div
-          style={{
-            borderTop: "1px solid var(--border)",
-            background: "var(--surface)",
-            flexShrink: 0,
-            height: 240,
-            display: "flex",
-            flexDirection: "column"
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              gap: 2,
-              padding: "8px 16px 0",
-              borderBottom: "1px solid var(--border)",
-              overflowX: "auto"
-            }}
-          >
+        <div className="border-t border-border bg-surface shrink-0 h-[240px] flex flex-col">
+          <div className="flex gap-0.5 px-4 pt-2 border-b border-border overflow-x-auto">
             {CATEGORY_TABS.map((cat) => {
               const isActive = activeCategory === cat.id;
               return (
                 <button
+                  type="button"
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id)}
-                  style={{
-                    padding: "5px 14px",
-                    background: "transparent",
-                    border: "none",
-                    borderBottom: isActive ? "2px solid var(--gold)" : "2px solid transparent",
-                    color: isActive ? "var(--gold-light)" : "var(--text-muted)",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: "0.5px",
-                    cursor: "pointer",
-                    fontFamily: "'Exo 2', sans-serif",
-                    whiteSpace: "nowrap",
-                    transition: "all 0.15s"
-                  }}
+                  className={`px-[14px] py-[5px] bg-transparent border-none border-b-2 text-[11px] font-semibold tracking-[0.5px] cursor-pointer font-exo whitespace-nowrap transition-all duration-150
+                    ${isActive ? "border-b-gold text-gold-light" : "border-b-transparent text-text-muted"}`}
                 >
                   {cat.label}
                 </button>
               );
             })}
           </div>
-          <div style={{ flex: 1, overflowY: "auto", padding: "10px 16px" }}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-                gap: 6
-              }}
-            >
+          <div className="flex-1 overflow-y-auto px-4 py-[10px]">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-[6px]">
               {obtainable.map((item, i) => (
                 <ObtainableItem
                   key={item.name}

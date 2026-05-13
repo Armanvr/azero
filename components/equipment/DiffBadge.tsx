@@ -6,18 +6,8 @@ export default function DiffBadge({ diff }: { diff: Difficulty }) {
   const c = DIFF_COLORS[diff] || DIFF_COLORS.Normal;
   return (
     <span
-      style={{
-        padding: "2px 7px",
-        borderRadius: 3,
-        fontSize: 9,
-        fontWeight: 700,
-        letterSpacing: "0.5px",
-        background: c.bg,
-        color: c.text,
-        border: `1px solid ${c.border}`,
-        whiteSpace: "nowrap",
-        fontFamily: "'Exo 2', sans-serif"
-      }}
+      className="px-[7px] py-[2px] rounded-[3px] text-[9px] font-bold tracking-[0.5px] whitespace-nowrap font-exo border"
+      style={{ background: c.bg, color: c.text, borderColor: c.border }}
     >
       {diff}
     </span>
