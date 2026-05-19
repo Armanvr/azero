@@ -89,13 +89,18 @@ export default function HomePage() {
     );
   }
 
+  const loadingSlots = enriching && char.slotsLeft.length === 0;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
       <Header active="home" />
       <CharacterBar characters={characters} selectedId={char.id} onSelect={selectCharacter} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
-        <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 240px 1fr", overflow: "hidden" }}>
+        {/* 4-column grid: [left equip] [avatar] [weapons] [right equip] */}
+        <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 160px 160px 1fr", overflow: "hidden" }}>
+
+          {/* Col 1 — Left equipment */}
           <div
             style={{
               padding: "14px 12px",
@@ -109,8 +114,8 @@ export default function HomePage() {
             <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "1px", marginBottom: 4 }}>
               ÉQUIPEMENT
             </div>
-            {char.slotsLeft.length === 0 && enriching ? (
-              <div style={{ fontSize: 11, color: "var(--text-muted)", padding: "8px 0" }}>Chargement équipement…</div>
+            {loadingSlots ? (
+              <div style={{ fontSize: 11, color: "var(--text-muted)", padding: "8px 0" }}>Chargement…</div>
             ) : (
               char.slotsLeft.map((slot) => (
                 <ItemSlot
@@ -124,49 +129,58 @@ export default function HomePage() {
             )}
           </div>
 
+          {/* Col 2 — Avatar + character info */}
           <div
             style={{
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              padding: 16,
+              padding: "16px 8px",
               borderRight: "1px solid var(--border)",
-              background: "var(--surface)"
+              background: "var(--surface)",
+              overflowY: "auto"
             }}
           >
-            <div style={{ marginBottom: 10, textAlign: "center" }}>
+            <div style={{ marginBottom: 8, textAlign: "center", width: "100%" }}>
               {char.title && (
-                <div style={{ fontSize: 10, color: "var(--text-dim)", marginBottom: 2 }}>{char.title}</div>
+                <div style={{ fontSize: 9, color: "var(--text-muted)", marginBottom: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {char.title}
+                </div>
               )}
               <div
                 style={{
-                  fontSize: 20,
+                  fontSize: 16,
                   fontFamily: "Rajdhani",
                   fontWeight: 700,
                   color: char.color,
-                  letterSpacing: 1
+                  letterSpacing: 1,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis"
                 }}
               >
                 {char.name}
               </div>
             </div>
-            <CharAvatar character={char} size={160} />
-            <div style={{ marginTop: 12, textAlign: "center" }}>
-              <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 4 }}>
+
+            <CharAvatar character={char} size={144} />
+
+            <div style={{ marginTop: 10, textAlign: "center", width: "100%" }}>
+              <div style={{ fontSize: 9, color: "var(--text-muted)", marginBottom: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {char.race} {char.spec ? `${char.spec} ` : ""}{char.class}
               </div>
-              <div style={{ fontSize: 10, color: "var(--text-muted)" }}>
+              <div style={{ fontSize: 9, color: "var(--text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {char.guild ? `‹${char.guild}› ` : ""}{char.realm}
               </div>
-              <div style={{ marginTop: 10, display: "flex", gap: 6, justifyContent: "center" }}>
+              <div style={{ marginTop: 8, display: "flex", gap: 4, justifyContent: "center", flexWrap: "wrap" }}>
                 {char.ilvl > 0 && (
                   <span
                     style={{
-                      padding: "3px 8px",
+                      padding: "2px 6px",
                       background: "var(--surface3)",
                       borderRadius: 3,
-                      fontSize: 10,
+                      fontSize: 9,
                       color: "var(--text-dim)",
                       border: "1px solid var(--border)"
                     }}
@@ -174,29 +188,46 @@ export default function HomePage() {
                     iLvl {char.ilvl}
                   </span>
                 )}
-                {enriching && (
-                  <span style={{ fontSize: 10, color: "var(--text-muted)", padding: "3px 0" }}>↻</span>
-                )}
+                {enriching && <span style={{ fontSize: 9, color: "var(--text-muted)" }}>↻</span>}
               </div>
             </div>
+          </div>
 
-            {/* Weapon slots */}
-            {char.slotsWeapon.length > 0 && (
-              <div style={{ marginTop: 12, width: "100%", display: "flex", gap: 6 }}>
-                {char.slotsWeapon.map((slot) => (
-                  <div key={slot.id} style={{ flex: 1 }}>
-                    <ItemSlot
-                      slot={slot}
-                      side="left"
-                      isActive={selectedItem?.name === slot.item}
-                      onSelect={setSelectedItem}
-                    />
-                  </div>
-                ))}
-              </div>
+          {/* Col 3 — Weapon slots */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "stretch",
+              justifyContent: "center",
+              padding: "16px 8px",
+              borderRight: "1px solid var(--border)",
+              background: "var(--surface)",
+              gap: 6,
+              overflowY: "auto"
+            }}
+          >
+            <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "1px", marginBottom: 4, textAlign: "center" }}>
+              ARMES
+            </div>
+            {loadingSlots ? (
+              <div style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "center" }}>…</div>
+            ) : char.slotsWeapon.length === 0 ? (
+              <div style={{ fontSize: 10, color: "var(--text-muted)", textAlign: "center", opacity: 0.5 }}>—</div>
+            ) : (
+              char.slotsWeapon.map((slot) => (
+                <ItemSlot
+                  key={slot.id}
+                  slot={slot}
+                  side="left"
+                  isActive={selectedItem?.name === slot.item}
+                  onSelect={setSelectedItem}
+                />
+              ))
             )}
           </div>
 
+          {/* Col 4 — Right equipment */}
           <div
             style={{
               padding: "14px 12px",
@@ -207,10 +238,10 @@ export default function HomePage() {
             }}
           >
             <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "1px", marginBottom: 4 }}>
-              ÉQUIPEMENT RESTANT
+              ÉQUIPEMENT
             </div>
-            {char.slotsRight.length === 0 && enriching ? (
-              <div style={{ fontSize: 11, color: "var(--text-muted)", padding: "8px 0" }}>Chargement équipement…</div>
+            {loadingSlots ? (
+              <div style={{ fontSize: 11, color: "var(--text-muted)", padding: "8px 0" }}>Chargement…</div>
             ) : (
               char.slotsRight.map((slot) => (
                 <ItemSlot
@@ -225,6 +256,7 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* Bottom — Obtainable items */}
         <div
           style={{
             borderTop: "1px solid var(--border)",

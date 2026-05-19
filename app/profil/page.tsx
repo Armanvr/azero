@@ -202,53 +202,133 @@ export default function ProfilPage() {
         </div>
 
         {/* Characters */}
-        {user.bnetConnected && (
-          <div>
-            <div style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: 2, marginBottom: 6 }}>
-              VOS PERSONNAGES ({characters.length})
-            </div>
-            <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 12 }}>
-              ★ = personnage principal · ☆ = sous-favori
-            </div>
-            {characters.length === 0 ? (
+        {user.bnetConnected && (() => {
+          if (characters.length === 0) {
+            return (
               <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Aucun personnage trouvé.</div>
-            ) : (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-                  gap: 8,
-                }}
-              >
-                {characters.map((char) => {
-                  const charId = `${char.name.toLowerCase()}-${char.realmSlug}`;
-                  return (
-                    <CharacterCard
-                      key={`${char.name}-${char.realmSlug}`}
-                      char={char}
-                      isFavorite={user.favoriteCharId === charId}
-                      isSubFavorite={(user.subFavoriteCharIds ?? []).includes(charId)}
-                      onFavoriteToggle={handleFavoriteToggle}
-                      onSubFavoriteToggle={handleSubFavoriteToggle}
-                      onRefreshed={(updated) =>
-                        setData((prev) =>
-                          prev
-                            ? {
-                                ...prev,
-                                characters: prev.characters.map((c) =>
-                                  c.name === updated.name && c.realmSlug === updated.realmSlug ? updated : c
-                                ),
-                              }
-                            : prev
-                        )
-                      }
-                    />
-                  );
-                })}
+            );
+          }
+
+          const getCharId = (c: typeof characters[0]) => `${c.name.toLowerCase()}-${c.realmSlug}`;
+          const subFavIds = new Set(user.subFavoriteCharIds ?? []);
+          const favoriteChar = characters.find((c) => getCharId(c) === user.favoriteCharId);
+          const subFavChars = characters.filter((c) => subFavIds.has(getCharId(c)));
+          const otherChars = characters.filter((c) => {
+            const id = getCharId(c);
+            return id !== user.favoriteCharId && !subFavIds.has(id);
+          });
+
+          const renderCard = (char: typeof characters[0]) => {
+            const charId = getCharId(char);
+            return (
+              <CharacterCard
+                key={`${char.name}-${char.realmSlug}`}
+                char={char}
+                isFavorite={user.favoriteCharId === charId}
+                isSubFavorite={subFavIds.has(charId)}
+                onFavoriteToggle={handleFavoriteToggle}
+                onSubFavoriteToggle={handleSubFavoriteToggle}
+                onRefreshed={(updated) =>
+                  setData((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          characters: prev.characters.map((c) =>
+                            c.name === updated.name && c.realmSlug === updated.realmSlug ? updated : c
+                          ),
+                        }
+                      : prev
+                  )
+                }
+              />
+            );
+          };
+
+          return (
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              {/* Hint */}
+              <div style={{ fontSize: 10, color: "var(--text-muted)" }}>
+                ★ = personnage principal · ☆ = sous-favori
               </div>
-            )}
-          </div>
-        )}
+
+              {/* Favorite section */}
+              {favoriteChar && (
+                <div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: "var(--gold-light)",
+                      letterSpacing: 2,
+                      marginBottom: 10,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <span>★</span>
+                    <span>PERSONNAGE PRINCIPAL</span>
+                  </div>
+                  <div
+                    style={{
+                      background: "rgba(240,180,41,0.04)",
+                      border: "1px solid rgba(240,180,41,0.2)",
+                      borderRadius: 8,
+                      padding: 12,
+                    }}
+                  >
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 8 }}>
+                      {renderCard(favoriteChar)}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-favorites section */}
+              {subFavChars.length > 0 && (
+                <div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: "#a855f7",
+                      letterSpacing: 2,
+                      marginBottom: 10,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <span>☆</span>
+                    <span>SOUS-FAVORIS</span>
+                  </div>
+                  <div
+                    style={{
+                      background: "rgba(168,85,247,0.04)",
+                      border: "1px solid rgba(168,85,247,0.15)",
+                      borderRadius: 8,
+                      padding: 12,
+                    }}
+                  >
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 8 }}>
+                      {subFavChars.map(renderCard)}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Other characters */}
+              {otherChars.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: 2, marginBottom: 10 }}>
+                    PERSONNAGES ({otherChars.length})
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 8 }}>
+                    {otherChars.map(renderCard)}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
