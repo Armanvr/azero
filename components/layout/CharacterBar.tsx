@@ -5,8 +5,8 @@ import StatChip from "../character/StatChip";
 
 interface Props {
   characters: Character[];
-  selectedId: number | null;
-  onSelect: (id: number) => void;
+  selectedId: string | null;
+  onSelect: (id: string) => void;
 }
 
 export default function CharacterBar({ characters, selectedId, onSelect }: Props) {
@@ -39,9 +39,9 @@ export default function CharacterBar({ characters, selectedId, onSelect }: Props
       </span>
       <CharacterDropdown characters={characters} selectedId={selectedId} onSelect={onSelect} />
       <div style={{ display: "flex", gap: 16, marginLeft: 8 }}>
-        <StatChip icon="💰" value={char.gold.toLocaleString()} color="var(--gold-light)" />
-        <StatChip icon="⚔️" value={`iLvl ${char.ilvl}`} color="var(--text-dim)" />
-        <StatChip icon="🏆" value={`M+ ${char.score}`} color="var(--purple)" />
+        {char.gold > 0 && <StatChip icon="💰" value={char.gold.toLocaleString()} color="var(--gold-light)" />}
+        {char.ilvl > 0 && <StatChip icon="⚔️" value={`iLvl ${char.ilvl}`} color="var(--text-dim)" />}
+        {char.score > 0 && <StatChip icon="🏆" value={`M+ ${char.score}`} color="var(--purple)" />}
       </div>
     </div>
   );

@@ -23,21 +23,26 @@ export default function ItemSlot({ slot, side, isActive, onSelect }: Props) {
         flexShrink: 0,
         display: "flex",
         alignItems: "center",
-        justifyContent: "center"
+        justifyContent: "center",
+        overflow: "hidden"
       }}
     >
-      <span
-        style={{
-          fontSize: 9,
-          color: rc,
-          fontFamily: "Rajdhani",
-          fontWeight: 700,
-          textAlign: "center",
-          lineHeight: 1.1
-        }}
-      >
-        {slot.label.slice(0, 3).toUpperCase()}
-      </span>
+      {slot.iconUrl ? (
+        <img src={slot.iconUrl} alt="" style={{ width: 32, height: 32, objectFit: "cover" }} />
+      ) : (
+        <span
+          style={{
+            fontSize: 9,
+            color: rc,
+            fontFamily: "Rajdhani",
+            fontWeight: 700,
+            textAlign: "center",
+            lineHeight: 1.1
+          }}
+        >
+          {slot.label.slice(0, 3).toUpperCase()}
+        </span>
+      )}
     </div>
   );
 

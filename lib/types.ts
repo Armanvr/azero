@@ -67,6 +67,7 @@ export interface EquippedItem {
   ilvl: number;
   enchant: string | null;
   rarity: ItemRarity;
+  iconUrl?: string;
 }
 
 export interface ObtainableItemData {
@@ -84,7 +85,7 @@ export interface ObtainableCategory {
 }
 
 export interface Character {
-  id: number;
+  id: string;
   name: string;
   title: string;
   race: string;
@@ -97,6 +98,7 @@ export interface Character {
   score: number;
   gold: number;
   color: string;
+  avatarUrl?: string;
   slotsLeft: EquippedItem[];
   slotsRight: EquippedItem[];
 }
@@ -141,4 +143,16 @@ export interface BnetCharacter {
   level: number
   faction: 'horde' | 'alliance'
   fetchedAt: string
+  // Enriched fields (populated lazily via POST /api/characters/[id]/enrich)
+  avatarUrl?: string
+  mainRawUrl?: string
+  ilvl?: number
+  spec?: string
+  specId?: number
+  title?: string
+  guildName?: string
+  gold?: number
+  slotsLeft?: EquippedItem[]
+  slotsRight?: EquippedItem[]
+  enrichedAt?: string
 }

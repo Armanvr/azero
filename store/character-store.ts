@@ -4,11 +4,11 @@ import type { Character, SelectedItem } from "@/lib/types";
 
 interface CharacterState {
   characters: Character[];
-  selectedCharId: number | null;
+  selectedCharId: string | null;
   activeCategory: string;
   selectedItem: SelectedItem | null;
   setCharacters: (chars: Character[]) => void;
-  selectCharacter: (id: number) => void;
+  selectCharacter: (id: string) => void;
   setActiveCategory: (id: string) => void;
   setSelectedItem: (item: SelectedItem | null) => void;
 }

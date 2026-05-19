@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import type { BnetCharacter } from "@/lib/types";
 
 const FACTION_COLORS = {
@@ -22,9 +23,29 @@ const CLASS_COLORS: Record<number, string> = {
   13: '#33937F',
 };
 
-export default function CharacterCard({ char }: { char: BnetCharacter }) {
+interface Props {
+  char: BnetCharacter;
+  onRefreshed?: (updated: BnetCharacter) => void;
+}
+
+export default function CharacterCard({ char, onRefreshed }: Props) {
+  const [refreshing, setRefreshing] = useState(false);
   const classColor = CLASS_COLORS[char.classId] ?? 'var(--text)';
   const factionColor = FACTION_COLORS[char.faction];
+  const charId = `${char.name.toLowerCase()}-${char.realmSlug}`;
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try {
+      const res = await fetch(`/api/characters/${charId}/enrich`, { method: 'POST' });
+      if (res.ok && onRefreshed) {
+        const data = await res.json();
+        onRefreshed(data.character as BnetCharacter);
+      }
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   return (
     <div
@@ -55,22 +76,64 @@ export default function CharacterCard({ char }: { char: BnetCharacter }) {
         </span>
       </div>
       <div style={{ fontSize: 11, color: 'var(--text-dim)' }}>
-        {char.raceName} {char.className}
+        {char.raceName} {char.spec ? `${char.spec} ` : ''}{char.className}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
         <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{char.realm}</span>
-        <span
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          {char.ilvl != null && char.ilvl > 0 && (
+            <span
+              style={{
+                fontSize: 10,
+                padding: '2px 6px',
+                background: 'var(--surface3)',
+                border: '1px solid var(--border)',
+                borderRadius: 3,
+                color: 'var(--gold-light)',
+              }}
+            >
+              iLvl {char.ilvl}
+            </span>
+          )}
+          <span
+            style={{
+              fontSize: 10,
+              padding: '2px 6px',
+              background: 'var(--surface3)',
+              border: '1px solid var(--border)',
+              borderRadius: 3,
+              color: 'var(--text-dim)',
+            }}
+          >
+            Niv. {char.level}
+          </span>
+        </div>
+      </div>
+      {char.guildName && (
+        <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>‹{char.guildName}›</div>
+      )}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
+        <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>
+          {char.enrichedAt
+            ? `Màj ${new Date(char.enrichedAt).toLocaleDateString('fr-FR')}`
+            : 'Non enrichi'}
+        </span>
+        <button
+          onClick={handleRefresh}
+          disabled={refreshing}
           style={{
             fontSize: 10,
-            padding: '2px 6px',
-            background: 'var(--surface3)',
-            border: '1px solid var(--border)',
+            padding: '2px 8px',
+            background: 'var(--surface2)',
+            border: '1px solid var(--border2)',
             borderRadius: 3,
-            color: 'var(--text-dim)',
+            color: refreshing ? 'var(--text-muted)' : 'var(--text-dim)',
+            cursor: refreshing ? 'default' : 'pointer',
+            fontFamily: "'Exo 2', sans-serif",
           }}
         >
-          Niv. {char.level}
-        </span>
+          {refreshing ? '…' : '↻'}
+        </button>
       </div>
     </div>
   );

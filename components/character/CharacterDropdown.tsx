@@ -4,8 +4,8 @@ import type { Character } from "@/lib/types";
 
 interface Props {
   characters: Character[];
-  selectedId: number | null;
-  onSelect: (id: number) => void;
+  selectedId: string | null;
+  onSelect: (id: string) => void;
 }
 
 export default function CharacterDropdown({ characters, selectedId, onSelect }: Props) {
@@ -41,20 +41,28 @@ export default function CharacterDropdown({ characters, selectedId, onSelect }: 
           minWidth: 220
         }}
       >
-        <span
-          style={{
-            width: 6,
-            height: 6,
-            borderRadius: "50%",
-            background: current.faction === "horde" ? "#f87171" : "#38bdf8",
-            flexShrink: 0
-          }}
-        />
+        {current.avatarUrl ? (
+          <img
+            src={current.avatarUrl}
+            alt=""
+            style={{ width: 24, height: 24, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+          />
+        ) : (
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              background: current.faction === "horde" ? "#f87171" : "#38bdf8",
+              flexShrink: 0
+            }}
+          />
+        )}
         <span style={{ flex: 1, textAlign: "left", fontSize: 13, fontWeight: 600, color: current.color }}>
           {current.name}
         </span>
         <span style={{ fontSize: 10, color: "var(--text-dim)" }}>
-          {current.class} · {current.realm}
+          {current.spec ? `${current.spec} ` : ""}{current.class} · {current.realm}
         </span>
         <span style={{ fontSize: 10, color: "var(--text-muted)", marginLeft: 4 }}>▾</span>
       </button>
@@ -70,7 +78,7 @@ export default function CharacterDropdown({ characters, selectedId, onSelect }: 
             borderRadius: 6,
             overflow: "hidden",
             zIndex: 100,
-            minWidth: 260,
+            minWidth: 280,
             boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
             animation: "fadeIn 0.15s ease"
           }}
@@ -99,15 +107,23 @@ export default function CharacterDropdown({ characters, selectedId, onSelect }: 
                 if (c.id !== selectedId) e.currentTarget.style.background = "transparent";
               }}
             >
-              <div
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  background: c.faction === "horde" ? "#f87171" : "#38bdf8",
-                  flexShrink: 0
-                }}
-              />
+              {c.avatarUrl ? (
+                <img
+                  src={c.avatarUrl}
+                  alt=""
+                  style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: c.faction === "horde" ? "#f87171" : "#38bdf8",
+                    flexShrink: 0
+                  }}
+                />
+              )}
               <div style={{ flex: 1 }}>
                 <div
                   style={{
@@ -121,10 +137,12 @@ export default function CharacterDropdown({ characters, selectedId, onSelect }: 
                   {c.name}
                 </div>
                 <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 1 }}>
-                  {c.race} {c.class} · {c.realm}
+                  {c.race} {c.spec ? `${c.spec} ` : ""}{c.class} · {c.realm}
                 </div>
               </div>
-              <div style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 600 }}>iLvl {c.ilvl}</div>
+              <div style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 600 }}>
+                {c.ilvl > 0 ? `iLvl ${c.ilvl}` : ""}
+              </div>
             </div>
           ))}
         </div>

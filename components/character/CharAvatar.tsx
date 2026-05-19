@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import type { Character } from "@/lib/types";
 
 const FALLBACK = ["#888", "#555"] as const;
@@ -20,8 +21,23 @@ const PALETTE: Record<string, [string, string]> = {
 };
 
 export default function CharAvatar({ character, size = 160 }: { character: Character; size?: number }) {
+  const [imgError, setImgError] = useState(false);
   const [c1, c2] = PALETTE[character.class] ?? FALLBACK;
   const id = `cg-${character.id}`;
+
+  if (character.avatarUrl && !imgError) {
+    return (
+      <img
+        src={character.avatarUrl}
+        alt={character.name}
+        width={size}
+        height={size}
+        onError={() => setImgError(true)}
+        style={{ borderRadius: 4, objectFit: "cover", display: "block" }}
+      />
+    );
+  }
+
   return (
     <svg width={size} height={size} viewBox="0 0 160 160">
       <defs>

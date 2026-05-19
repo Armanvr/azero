@@ -183,7 +183,22 @@ export default function ProfilPage() {
                 }}
               >
                 {characters.map((char) => (
-                  <CharacterCard key={`${char.name}-${char.realmSlug}`} char={char} />
+                  <CharacterCard
+                    key={`${char.name}-${char.realmSlug}`}
+                    char={char}
+                    onRefreshed={(updated) =>
+                      setData((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              characters: prev.characters.map((c) =>
+                                c.name === updated.name && c.realmSlug === updated.realmSlug ? updated : c
+                              ),
+                            }
+                          : prev
+                      )
+                    }
+                  />
                 ))}
               </div>
             )}

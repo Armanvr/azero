@@ -30,24 +30,48 @@ export default function HomePage() {
 
   const [obtainable, setObtainable] = useState<ObtainableItemData[]>([]);
   const [loadingChars, setLoadingChars] = useState(true);
+  const [enriching, setEnriching] = useState(false);
+
+  async function fetchCharacters(): Promise<Character[]> {
+    const r = await fetch("/api/characters");
+    if (!r.ok) return [];
+    const j = await r.json();
+    return (j.characters ?? []) as Character[];
+  }
 
   useEffect(() => {
-    fetch("/api/characters")
-      .then((r) => (r.ok ? r.json() : { characters: [] }))
-      .then((j) => setCharacters(j.characters as Character[]))
+    fetchCharacters()
+      .then((chars) => setCharacters(chars))
       .finally(() => setLoadingChars(false));
-  }, [setCharacters]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const char = useMemo(
+    () => characters.find((c) => c.id === selectedCharId) ?? characters[0],
+    [characters, selectedCharId]
+  );
+
+  // Auto-enrich selected character if not yet enriched
+  useEffect(() => {
+    if (!char || char.slotsLeft.length > 0 || enriching) return;
+    setEnriching(true);
+    fetch(`/api/characters/${char.id}/enrich`, { method: "POST" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then(async (data) => {
+        if (data) {
+          const updated = await fetchCharacters();
+          setCharacters(updated);
+        }
+      })
+      .finally(() => setEnriching(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [char?.id]);
 
   useEffect(() => {
     fetch(`/api/items/slot/${activeCategory}`)
       .then((r) => (r.ok ? r.json() : { items: [] }))
       .then((j) => setObtainable(j.items as ObtainableItemData[]));
   }, [activeCategory]);
-
-  const char = useMemo(
-    () => characters.find((c) => c.id === selectedCharId) ?? characters[0],
-    [characters, selectedCharId]
-  );
 
   if (loadingChars) {
     return (
@@ -60,7 +84,7 @@ export default function HomePage() {
   if (!char) {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", color: "var(--text-muted)" }}>
-        Aucun personnage disponible.
+        Aucun personnage disponible. Connectez votre compte Battle.net sur la page Profil.
       </div>
     );
   }
@@ -85,15 +109,19 @@ export default function HomePage() {
             <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "1px", marginBottom: 4 }}>
               ÉQUIPEMENT
             </div>
-            {char.slotsLeft.map((slot) => (
-              <ItemSlot
-                key={slot.id}
-                slot={slot}
-                side="left"
-                isActive={selectedItem?.name === slot.item}
-                onSelect={setSelectedItem}
-              />
-            ))}
+            {char.slotsLeft.length === 0 && enriching ? (
+              <div style={{ fontSize: 11, color: "var(--text-muted)", padding: "8px 0" }}>Chargement équipement…</div>
+            ) : (
+              char.slotsLeft.map((slot) => (
+                <ItemSlot
+                  key={slot.id}
+                  slot={slot}
+                  side="left"
+                  isActive={selectedItem?.name === slot.item}
+                  onSelect={setSelectedItem}
+                />
+              ))
+            )}
           </div>
 
           <div
@@ -108,6 +136,9 @@ export default function HomePage() {
             }}
           >
             <div style={{ marginBottom: 10, textAlign: "center" }}>
+              {char.title && (
+                <div style={{ fontSize: 10, color: "var(--text-dim)", marginBottom: 2 }}>{char.title}</div>
+              )}
               <div
                 style={{
                   fontSize: 20,
@@ -119,41 +150,33 @@ export default function HomePage() {
               >
                 {char.name}
               </div>
-              <div style={{ fontSize: 10, color: "var(--text-dim)", marginTop: 2 }}>{char.title}</div>
             </div>
             <CharAvatar character={char} size={160} />
             <div style={{ marginTop: 12, textAlign: "center" }}>
               <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 4 }}>
-                {char.race} {char.spec} {char.class}
+                {char.race} {char.spec ? `${char.spec} ` : ""}{char.class}
               </div>
               <div style={{ fontSize: 10, color: "var(--text-muted)" }}>
-                ‹{char.guild}› {char.realm}
+                {char.guild ? `‹${char.guild}› ` : ""}{char.realm}
               </div>
               <div style={{ marginTop: 10, display: "flex", gap: 6, justifyContent: "center" }}>
-                <span
-                  style={{
-                    padding: "3px 8px",
-                    background: "var(--surface3)",
-                    borderRadius: 3,
-                    fontSize: 10,
-                    color: "var(--text-dim)",
-                    border: "1px solid var(--border)"
-                  }}
-                >
-                  iLvl {char.ilvl}
-                </span>
-                <span
-                  style={{
-                    padding: "3px 8px",
-                    background: "var(--purple-dim)",
-                    borderRadius: 3,
-                    fontSize: 10,
-                    color: "var(--purple)",
-                    border: "1px solid rgba(168,85,247,0.2)"
-                  }}
-                >
-                  M+ {char.score}
-                </span>
+                {char.ilvl > 0 && (
+                  <span
+                    style={{
+                      padding: "3px 8px",
+                      background: "var(--surface3)",
+                      borderRadius: 3,
+                      fontSize: 10,
+                      color: "var(--text-dim)",
+                      border: "1px solid var(--border)"
+                    }}
+                  >
+                    iLvl {char.ilvl}
+                  </span>
+                )}
+                {enriching && (
+                  <span style={{ fontSize: 10, color: "var(--text-muted)", padding: "3px 0" }}>↻</span>
+                )}
               </div>
             </div>
           </div>
@@ -170,15 +193,19 @@ export default function HomePage() {
             <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "1px", marginBottom: 4 }}>
               ÉQUIPEMENT RESTANT
             </div>
-            {char.slotsRight.map((slot) => (
-              <ItemSlot
-                key={slot.id}
-                slot={slot}
-                side="right"
-                isActive={selectedItem?.name === slot.item}
-                onSelect={setSelectedItem}
-              />
-            ))}
+            {char.slotsRight.length === 0 && enriching ? (
+              <div style={{ fontSize: 11, color: "var(--text-muted)", padding: "8px 0" }}>Chargement équipement…</div>
+            ) : (
+              char.slotsRight.map((slot) => (
+                <ItemSlot
+                  key={slot.id}
+                  slot={slot}
+                  side="right"
+                  isActive={selectedItem?.name === slot.item}
+                  onSelect={setSelectedItem}
+                />
+              ))
+            )}
           </div>
         </div>
 

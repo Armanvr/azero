@@ -20,6 +20,22 @@ export const DIFF_COLORS: Record<Difficulty, { bg: string; text: string; border:
   Réputation: { bg: "rgba(156,163,175,0.12)", text: "#9ca3af", border: "rgba(156,163,175,0.25)" }
 };
 
+export const CLASS_ID_TO_NAME: Record<number, WowClass> = {
+  1: "Guerrier",
+  2: "Paladin",
+  3: "Chasseur",
+  4: "Voleur",
+  5: "Prêtre",
+  6: "Chevalier de la mort",
+  7: "Chaman",
+  8: "Mage",
+  9: "Démoniste",
+  10: "Moine",
+  11: "Druide",
+  12: "Chasseur de démons",
+  13: "Evocateur",
+};
+
 export const CLASS_COLORS: Record<WowClass, string> = {
   Paladin: "#f0b429",
   Mage: "#38bdf8",
