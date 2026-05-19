@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 
-type Page = "home" | "metiers" | "collections" | "profil";
+type Page = "home" | "metiers" | "profil";
 
 interface NavItem {
   label: string;
@@ -12,7 +12,6 @@ interface NavItem {
 const NAV: NavItem[] = [
   { label: "ACCUEIL", page: "home", href: "/" },
   { label: "MÉTIERS", page: "metiers", href: "/metiers" },
-  { label: "COLLECTIONS", page: "collections", href: "/metiers" },
   { label: "PROFIL", page: "profil", href: "/profil" }
 ];
 

@@ -25,10 +25,21 @@ const CLASS_COLORS: Record<number, string> = {
 
 interface Props {
   char: BnetCharacter;
+  isFavorite: boolean;
+  isSubFavorite: boolean;
   onRefreshed?: (updated: BnetCharacter) => void;
+  onFavoriteToggle: (charId: string) => void;
+  onSubFavoriteToggle: (charId: string) => void;
 }
 
-export default function CharacterCard({ char, onRefreshed }: Props) {
+export default function CharacterCard({
+  char,
+  isFavorite,
+  isSubFavorite,
+  onRefreshed,
+  onFavoriteToggle,
+  onSubFavoriteToggle,
+}: Props) {
   const [refreshing, setRefreshing] = useState(false);
   const classColor = CLASS_COLORS[char.classId] ?? 'var(--text)';
   const factionColor = FACTION_COLORS[char.faction];
@@ -51,15 +62,50 @@ export default function CharacterCard({ char, onRefreshed }: Props) {
     <div
       style={{
         background: 'var(--surface)',
-        border: '1px solid var(--border)',
+        border: `1px solid ${isFavorite ? 'rgba(240,180,41,0.5)' : isSubFavorite ? 'rgba(168,85,247,0.35)' : 'var(--border)'}`,
         borderRadius: 6,
         padding: '10px 12px',
         display: 'flex',
         flexDirection: 'column',
         gap: 4,
+        position: 'relative',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      {/* Favorite indicators */}
+      <div style={{ position: 'absolute', top: 6, right: 6, display: 'flex', gap: 2 }}>
+        <button
+          onClick={() => onFavoriteToggle(charId)}
+          title={isFavorite ? 'Retirer des favoris' : 'Définir comme personnage principal'}
+          style={{
+            width: 20, height: 20,
+            background: 'none', border: 'none',
+            cursor: 'pointer', padding: 0,
+            fontSize: 13, lineHeight: 1,
+            color: isFavorite ? '#f0b429' : 'var(--text-muted)',
+            opacity: isFavorite ? 1 : 0.5,
+          }}
+        >
+          ★
+        </button>
+        {!isFavorite && (
+          <button
+            onClick={() => onSubFavoriteToggle(charId)}
+            title={isSubFavorite ? 'Retirer des sous-favoris' : 'Ajouter aux sous-favoris'}
+            style={{
+              width: 20, height: 20,
+              background: 'none', border: 'none',
+              cursor: 'pointer', padding: 0,
+              fontSize: 13, lineHeight: 1,
+              color: isSubFavorite ? '#a855f7' : 'var(--text-muted)',
+              opacity: isSubFavorite ? 1 : 0.4,
+            }}
+          >
+            ☆
+          </button>
+        )}
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingRight: 44 }}>
         <span
           style={{
             fontSize: 13,

@@ -101,6 +101,7 @@ export interface Character {
   avatarUrl?: string;
   slotsLeft: EquippedItem[];
   slotsRight: EquippedItem[];
+  slotsWeapon: EquippedItem[];
 }
 
 export interface User {
@@ -112,6 +113,8 @@ export interface User {
   bnetAccessToken?: string
   bnetTokenExpiry?: number
   bnetConnected?: boolean
+  favoriteCharId?: string
+  subFavoriteCharIds?: string[]
 }
 
 export interface SessionPayload {
@@ -154,5 +157,6 @@ export interface BnetCharacter {
   gold?: number
   slotsLeft?: EquippedItem[]
   slotsRight?: EquippedItem[]
+  slotsWeapon?: EquippedItem[]
   enrichedAt?: string
 }

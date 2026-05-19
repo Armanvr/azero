@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { readSession } from "@/lib/auth";
-import { charactersDb } from "@/lib/db";
+import { usersDb, charactersDb } from "@/lib/db";
 import { CLASS_COLORS, CLASS_ID_TO_NAME } from "@/lib/constants";
-import type { BnetCharacter, Character } from "@/lib/types";
+import type { BnetCharacter, Character, User } from "@/lib/types";
 
 const MAX_LEVEL = 90;
 
@@ -27,6 +27,7 @@ function bnetToCharacter(c: BnetCharacter): Character {
     avatarUrl: c.avatarUrl,
     slotsLeft: c.slotsLeft ?? [],
     slotsRight: c.slotsRight ?? [],
+    slotsWeapon: c.slotsWeapon ?? [],
   };
 }
 
@@ -34,11 +35,25 @@ export async function GET() {
   const session = await readSession();
   if (!session) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
-  const bnetChars = await charactersDb.findAsync<BnetCharacter>({
-    userId: session.userId,
-    level: MAX_LEVEL,
-  });
+  const [bnetChars, user] = await Promise.all([
+    charactersDb.findAsync<BnetCharacter>({ userId: session.userId, level: MAX_LEVEL }),
+    usersDb.findOneAsync<User>({ id: session.userId }),
+  ]);
 
-  const characters: Character[] = bnetChars.map(bnetToCharacter);
+  const favoriteCharId = user?.favoriteCharId ?? null;
+  const subFavoriteCharIds = new Set(user?.subFavoriteCharIds ?? []);
+
+  const characters: Character[] = bnetChars
+    .map(bnetToCharacter)
+    .sort((a, b) => {
+      if (a.id === favoriteCharId) return -1;
+      if (b.id === favoriteCharId) return 1;
+      const aSub = subFavoriteCharIds.has(a.id);
+      const bSub = subFavoriteCharIds.has(b.id);
+      if (aSub && !bSub) return -1;
+      if (bSub && !aSub) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
   return NextResponse.json({ characters });
 }

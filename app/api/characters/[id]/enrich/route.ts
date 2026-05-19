@@ -5,23 +5,27 @@ import type { BnetCharacter, EquippedItem, ItemRarity, User } from '@/lib/types'
 
 const SLOT_LABELS: Record<string, string> = {
   head: 'Tête', neck: 'Cou', shoulders: 'Épaules', back: 'Dos',
-  chest: 'Torse', wrist: 'Poignets', tabard: 'Tabard', hands: 'Mains',
-  belt: 'Ceinture', legs: 'Jambes', boots: 'Bottes',
+  chest: 'Torse', shirt: 'Chemise', tabard: 'Tabard', wrist: 'Bracelets',
+  hands: 'Gants', belt: 'Ceinture', legs: 'Jambes', boots: 'Bottes',
   ring1: 'Anneau 1', ring2: 'Anneau 2',
-  trinket1: 'Breloque 1', trinket2: 'Breloque 2',
-  mainhand: 'Main droite', offhand: 'Main gauche',
+  trinket1: 'Bijou 1', trinket2: 'Bijou 2',
+  mainhand: 'Arme', offhand: 'Main gauche',
 }
 
 const BNET_SLOT_MAP: Record<string, string> = {
   HEAD: 'head', NECK: 'neck', SHOULDER: 'shoulders', BACK: 'back',
-  CHEST: 'chest', WRIST: 'wrist', TABARD: 'tabard', HANDS: 'hands',
-  WAIST: 'belt', LEGS: 'legs', FEET: 'boots',
+  CHEST: 'chest', SHIRT: 'shirt', WRIST: 'wrist', TABARD: 'tabard',
+  HANDS: 'hands', WAIST: 'belt', LEGS: 'legs', FEET: 'boots',
   FINGER_1: 'ring1', FINGER_2: 'ring2',
   TRINKET_1: 'trinket1', TRINKET_2: 'trinket2',
   MAIN_HAND: 'mainhand', OFF_HAND: 'offhand',
 }
 
-const LEFT_SLOTS = new Set(['head', 'neck', 'shoulders', 'back', 'chest', 'wrist', 'tabard', 'hands'])
+// Left column: Tête - Cou - Épaules - Dos - Torse - Chemise - Tabard - Bracelets
+const LEFT_SLOTS = new Set(['head', 'neck', 'shoulders', 'back', 'chest', 'shirt', 'tabard', 'wrist'])
+// Bottom center: weapons
+const WEAPON_SLOTS = new Set(['mainhand', 'offhand'])
+// Right column: Gants - Ceinture - Jambes - Bottes - Anneaux - Bijoux
 
 const QUALITY_MAP: Record<string, ItemRarity> = {
   POOR: 'common', COMMON: 'common', UNCOMMON: 'uncommon',
@@ -159,7 +163,8 @@ export async function POST(
     .filter((s): s is EquippedItem => s !== null)
 
   const slotsLeft = allSlots.filter((s) => LEFT_SLOTS.has(s.id))
-  const slotsRight = allSlots.filter((s) => !LEFT_SLOTS.has(s.id))
+  const slotsRight = allSlots.filter((s) => !LEFT_SLOTS.has(s.id) && !WEAPON_SLOTS.has(s.id))
+  const slotsWeapon = allSlots.filter((s) => WEAPON_SLOTS.has(s.id))
 
   const enriched: Partial<BnetCharacter> = {
     avatarUrl,
@@ -172,6 +177,7 @@ export async function POST(
     gold,
     slotsLeft,
     slotsRight,
+    slotsWeapon,
     enrichedAt: new Date().toISOString(),
   }
 

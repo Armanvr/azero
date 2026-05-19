@@ -19,6 +19,8 @@ export async function GET() {
       email: user.email,
       createdAt: user.createdAt,
       bnetConnected: user.bnetConnected ?? false,
+      favoriteCharId: user.favoriteCharId ?? null,
+      subFavoriteCharIds: user.subFavoriteCharIds ?? [],
     },
     characters,
   })

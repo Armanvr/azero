@@ -179,6 +179,22 @@ export default function HomePage() {
                 )}
               </div>
             </div>
+
+            {/* Weapon slots */}
+            {char.slotsWeapon.length > 0 && (
+              <div style={{ marginTop: 12, width: "100%", display: "flex", gap: 6 }}>
+                {char.slotsWeapon.map((slot) => (
+                  <div key={slot.id} style={{ flex: 1 }}>
+                    <ItemSlot
+                      slot={slot}
+                      side="left"
+                      isActive={selectedItem?.name === slot.item}
+                      onSelect={setSelectedItem}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div

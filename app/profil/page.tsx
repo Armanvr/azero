@@ -12,6 +12,8 @@ interface ProfileUser {
   email: string;
   createdAt: string;
   bnetConnected: boolean;
+  favoriteCharId: string | null;
+  subFavoriteCharIds: string[];
 }
 
 interface ProfileData {
@@ -44,6 +46,39 @@ export default function ProfilPage() {
     const res = await fetch("/api/profile");
     if (res.ok) setData((await res.json()) as ProfileData);
     setDisconnecting(false);
+  }
+
+  async function handleFavoriteToggle(charId: string) {
+    if (!data) return;
+    const newFavoriteId = data.user.favoriteCharId === charId ? null : charId;
+    // If setting as favorite, remove from sub-favorites
+    const newSubs = (data.user.subFavoriteCharIds ?? []).filter((id) => id !== newFavoriteId);
+    await fetch("/api/profile/favorites", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ favoriteCharId: newFavoriteId, subFavoriteCharIds: newSubs }),
+    });
+    setData((prev) =>
+      prev
+        ? { ...prev, user: { ...prev.user, favoriteCharId: newFavoriteId, subFavoriteCharIds: newSubs } }
+        : prev
+    );
+  }
+
+  async function handleSubFavoriteToggle(charId: string) {
+    if (!data) return;
+    const current = data.user.subFavoriteCharIds ?? [];
+    const newSubs = current.includes(charId)
+      ? current.filter((id) => id !== charId)
+      : [...current, charId];
+    await fetch("/api/profile/favorites", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subFavoriteCharIds: newSubs }),
+    });
+    setData((prev) =>
+      prev ? { ...prev, user: { ...prev.user, subFavoriteCharIds: newSubs } } : prev
+    );
   }
 
   if (loading) {
@@ -169,8 +204,11 @@ export default function ProfilPage() {
         {/* Characters */}
         {user.bnetConnected && (
           <div>
-            <div style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: 2, marginBottom: 12 }}>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: 2, marginBottom: 6 }}>
               VOS PERSONNAGES ({characters.length})
+            </div>
+            <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 12 }}>
+              ★ = personnage principal · ☆ = sous-favori
             </div>
             {characters.length === 0 ? (
               <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Aucun personnage trouvé.</div>
@@ -178,28 +216,35 @@ export default function ProfilPage() {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
                   gap: 8,
                 }}
               >
-                {characters.map((char) => (
-                  <CharacterCard
-                    key={`${char.name}-${char.realmSlug}`}
-                    char={char}
-                    onRefreshed={(updated) =>
-                      setData((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              characters: prev.characters.map((c) =>
-                                c.name === updated.name && c.realmSlug === updated.realmSlug ? updated : c
-                              ),
-                            }
-                          : prev
-                      )
-                    }
-                  />
-                ))}
+                {characters.map((char) => {
+                  const charId = `${char.name.toLowerCase()}-${char.realmSlug}`;
+                  return (
+                    <CharacterCard
+                      key={`${char.name}-${char.realmSlug}`}
+                      char={char}
+                      isFavorite={user.favoriteCharId === charId}
+                      isSubFavorite={(user.subFavoriteCharIds ?? []).includes(charId)}
+                      onFavoriteToggle={handleFavoriteToggle}
+                      onSubFavoriteToggle={handleSubFavoriteToggle}
+                      onRefreshed={(updated) =>
+                        setData((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                characters: prev.characters.map((c) =>
+                                  c.name === updated.name && c.realmSlug === updated.realmSlug ? updated : c
+                                ),
+                              }
+                            : prev
+                        )
+                      }
+                    />
+                  );
+                })}
               </div>
             )}
           </div>

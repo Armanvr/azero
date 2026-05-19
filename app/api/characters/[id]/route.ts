@@ -25,6 +25,7 @@ function bnetToCharacter(c: BnetCharacter): Character {
     avatarUrl: c.avatarUrl,
     slotsLeft: c.slotsLeft ?? [],
     slotsRight: c.slotsRight ?? [],
+    slotsWeapon: c.slotsWeapon ?? [],
   };
 }
 
