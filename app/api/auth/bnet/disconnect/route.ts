@@ -1,23 +1,19 @@
 import { NextResponse } from 'next/server'
 import { readSession } from '@/lib/auth'
-import { usersDb, charactersDb } from '@/lib/db'
+import { CharacterModel, connectDB, UserModel } from '@/lib/db'
 
 export async function POST() {
-  const session = await readSession()
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+	const session = await readSession()
+	if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  await usersDb.updateAsync(
-    { id: session.userId },
-    { $set: { bnetConnected: false } },
-    {}
-  )
-  await usersDb.updateAsync(
-    { id: session.userId },
-    { $unset: { bnetAccessToken: true, bnetTokenExpiry: true } },
-    {}
-  )
+	await connectDB()
 
-  await charactersDb.removeAsync({ userId: session.userId }, { multi: true })
+	await UserModel.updateOne(
+		{ id: session.userId },
+		{ $set: { bnetConnected: false }, $unset: { bnetAccessToken: '', bnetTokenExpiry: '' } },
+	)
 
-  return NextResponse.json({ ok: true })
+	await CharacterModel.deleteMany({ userId: session.userId })
+
+	return NextResponse.json({ ok: true })
 }

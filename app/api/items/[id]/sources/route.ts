@@ -1,13 +1,26 @@
-import { NextResponse } from "next/server";
-import { ITEM_SOURCES } from "@/lib/mock-data";
-import { readSession } from "@/lib/auth";
+import { NextResponse } from 'next/server'
+import { getItemData } from '@/lib/services/itemService'
 
+// GET /api/items/[id]/sources
+// [id] = Blizzard numeric item ID
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await readSession();
-  if (!session) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-  const { id } = await params;
-  const name = decodeURIComponent(id);
-  const data = ITEM_SOURCES[name];
-  if (!data) return NextResponse.json({ error: "Item introuvable" }, { status: 404 });
-  return NextResponse.json({ name, ...data });
+	const { id } = await params
+	const itemId = Number(id)
+
+	if (!itemId || Number.isNaN(itemId)) {
+		return NextResponse.json({ error: 'ID invalide' }, { status: 400 })
+	}
+
+	const data = await getItemData(itemId)
+	if (!data) {
+		return NextResponse.json({ error: 'Item introuvable' }, { status: 404 })
+	}
+
+	return NextResponse.json({
+		name: data.name,
+		type: data.type,
+		slot: data.slot,
+		stats: data.stats,
+		sources: data.sources,
+	})
 }

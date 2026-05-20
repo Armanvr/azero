@@ -1,34 +1,32 @@
-import Datastore from '@seald-io/nedb'
-import fs from 'fs'
-import path from 'path'
-
-const DATA_DIR = path.join(process.cwd(), 'data')
-fs.mkdirSync(DATA_DIR, { recursive: true })
+import mongoose from 'mongoose'
 
 declare global {
-  // eslint-disable-next-line no-var
-  var __nedb_users: Datastore | undefined
-  var __nedb_characters: Datastore | undefined
+	// eslint-disable-next-line no-var
+	var __mongoose: { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null } | undefined
 }
 
-export const usersDb: Datastore =
-  global.__nedb_users ??
-  new Datastore({
-    filename: path.join(DATA_DIR, 'users.db'),
-    autoload: true,
-  })
+const cached = global.__mongoose ?? { conn: null, promise: null }
+global.__mongoose = cached
 
-export const charactersDb: Datastore =
-  global.__nedb_characters ??
-  new Datastore({
-    filename: path.join(DATA_DIR, 'characters.db'),
-    autoload: true,
-  })
+export async function connectDB(): Promise<typeof mongoose> {
+	if (cached.conn) return cached.conn
 
-if (process.env.NODE_ENV !== 'production') {
-  global.__nedb_users = usersDb
-  global.__nedb_characters = charactersDb
+	const MONGODB_URI = process.env.MONGODB_URI
+	if (!MONGODB_URI) {
+		throw new Error('MONGODB_URI environment variable is not defined. See .env.local.example.')
+	}
+
+	if (!cached.promise) {
+		cached.promise = mongoose.connect(MONGODB_URI, {
+			bufferCommands: false,
+		})
+	}
+
+	cached.conn = await cached.promise
+	return cached.conn
 }
 
-void usersDb.ensureIndexAsync({ fieldName: 'email', unique: true })
-void charactersDb.ensureIndexAsync({ fieldName: 'userId' })
+export { CharacterModel } from '@/lib/models/Character'
+export { ItemCacheModel, makeItemExpiry } from '@/lib/models/ItemCache'
+export { makeExpiry, SearchCacheModel } from '@/lib/models/SearchCache'
+export { UserModel } from '@/lib/models/User'
