@@ -1,19 +1,17 @@
 # Azero
 
 **Azero** est un dashboard de type _Armory_ pour World of Warcraft.  
-Il permet à un joueur de consulter l'équipement de ses personnages, de découvrir les items obtenables par slot avec leurs sources d'obtention, et de gérer plusieurs personnages sur un même compte.
+Il permet de rechercher et consulter l'équipement de n'importe quel personnage EU, d'enrichir les données via l'API Blizzard et WowHead, et de gérer ses favoris sur un compte connecté.
 
 ---
 
 ## Aperçu
 
-- Dashboard 3 colonnes : slots équipés gauche · portrait central · slots équipés droite
-- Panel inférieur : items obtenables filtrés par slot (onglets TÊTE / ÉPAULES / TORSE / JAMBES…)
-- Detail Panel animé (slide-in) au clic sur n'importe quel item — nom, stats, sources d'obtention avec difficulté et drop rate
-- Authentification email/mot de passe avec session JWT (cookie `httpOnly`)
-- Gestion multi-personnages par compte (dropdown avec couleurs de classe WoW)
-
-> **V1** — Les données sont mockées (3 personnages factices). Le store utilisateurs est en mémoire (perdu à chaque redémarrage). Voir [Roadmap](#roadmap-v2) pour la suite.
+- **Recherche publique** : formulaire sur la homepage — aucune connexion requise
+- **Fiche personnage** : équipement complet, icônes BNet, stats d'item en français, sources de drop WowHead
+- **Compte connecté** : liaison Battle.net, favoris ★ / sous-favoris ☆, dropdown Personnages dans le header
+- **Cache MongoDB** : `SearchCache` (1h) pour les recherches publiques, `ItemCache` (7j) pour les données d'items
+- **Auth email/mot de passe** : session JWT HS256 cookie `httpOnly`
 
 ---
 
@@ -21,20 +19,22 @@ Il permet à un joueur de consulter l'équipement de ses personnages, de découv
 
 | Couche | Technologie |
 |---|---|
-| Framework | Next.js (App Router) |
+| Framework | Next.js 16 (App Router) |
 | Langage | TypeScript strict |
 | Style | Tailwind CSS v4 + tokens CSS custom |
 | État UI | Zustand |
-| Auth | JWT signé HS256 (jose) + bcryptjs |
-| Lint/Format | Biome (`lint`, `lint:fix`, `format`) |
+| Auth | JWT HS256 (jose) + bcryptjs |
+| Base de données | MongoDB + Mongoose |
+| Lint/Format | Biome |
 | Polices | Rajdhani · Exo 2 (Google Fonts) |
 
 ---
 
 ## Prérequis
 
-- **Node.js** 24.x LTS (géré via `.nvmrc` — `nvm use`)
-- **npm** ≥ 9 (ou pnpm / yarn)
+- **Node.js** 24.x LTS
+- **MongoDB** : instance locale ou [Atlas free tier](https://www.mongodb.com/atlas)
+- Compte développeur Blizzard → [develop.battle.net](https://develop.battle.net)
 
 ---
 
@@ -48,40 +48,42 @@ npm install
 
 ### Configuration
 
-Copier le fichier d'exemple et renseigner le secret de session :
-
 ```bash
 cp .env.local.example .env.local
 ```
 
-Éditer `.env.local` :
+Renseigner `.env.local` :
 
 ```env
-AZERO_SESSION_SECRET=<chaîne_aléatoire_≥_32_caractères>
-# Générer avec : openssl rand -base64 48
+# MongoDB
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/<dbname>?retryWrites=true&w=majority
+
+# JWT session (>= 32 caractères)
+AZERO_SESSION_SECRET=<openssl rand -base64 48>
+
+# Battle.net OAuth (develop.battle.net)
+BNET_CLIENT_ID=your_client_id
+BNET_CLIENT_SECRET=your_client_secret
+BNET_REDIRECT_URI=http://localhost:3000/api/auth/bnet/callback
 ```
 
-> Sans `.env.local`, un secret de fallback est utilisé (dev uniquement — **ne pas déployer en production**).
+Voir `docs/BNET_API_GUIDE.md` pour la configuration complète des credentials Blizzard.
 
 ---
 
 ## Lancer le projet
 
 ```bash
-# Développement
-npm run dev
-# → http://localhost:3000
-
-# Build de production
+npm run dev        # http://localhost:3000
 npm run build
 npm start
 ```
 
-Première utilisation :
+### Premier démarrage
 
-1. Vous êtes redirigé vers `/auth`.
-2. Onglet **INSCRIPTION** → créez un compte (email / pseudo / mot de passe).
-3. Vous arrivez sur le dashboard avec le personnage **Kratós** sélectionné.
+1. Homepage `/` : formulaire de recherche de personnage (accès libre)
+2. Pour un compte : `/auth` → inscription → liaison Battle.net sur `/profil`
+3. Une fois BNet connecté, le bouton PERSONNAGES apparaît dans le header
 
 ---
 
@@ -90,30 +92,47 @@ Première utilisation :
 ```
 azero/
 ├─ app/
-│  ├─ layout.tsx                  # Polices Google + globals
-│  ├─ globals.css                 # Tokens CSS + keyframes
-│  ├─ page.tsx                    # Dashboard principal
-│  ├─ auth/page.tsx               # Connexion / Inscription
-│  ├─ metiers/page.tsx            # Coming Soon
+│  ├─ layout.tsx
+│  ├─ globals.css                  # Tokens CSS + keyframes
+│  ├─ page.tsx                     # Formulaire de recherche (public)
+│  ├─ auth/page.tsx                # Connexion / Inscription
+│  ├─ metiers/page.tsx             # Coming Soon (auth requis)
+│  ├─ profil/page.tsx              # Gestion compte + BNet (auth requis)
+│  ├─ personnage/[realm]/[name]/page.tsx   # Fiche personnage (public)
 │  └─ api/
-│     ├─ auth/{login,register,logout}/route.ts
-│     ├─ characters/route.ts
+│     ├─ auth/{login,register,logout}/
+│     ├─ auth/bnet/{route,callback,disconnect}/
+│     ├─ characters/route.ts               # Liste personnages (auth)
 │     ├─ characters/[id]/route.ts
-│     ├─ items/[id]/sources/route.ts
-│     └─ items/slot/[slot]/route.ts
-├─ proxy.ts                    # Garde de routes (redirect /auth ↔ /)
+│     ├─ characters/[id]/enrich/route.ts
+│     ├─ characters/public/[realm]/[name]/ # Lookup public (cache-first)
+│     ├─ items/[id]/sources/route.ts       # Stats + sources WowHead
+│     ├─ items/slot/[slot]/route.ts
+│     └─ profile/{route,favorites}/
+├─ proxy.ts                        # Garde de routes (protège /metiers, /profil)
 ├─ components/
-│  ├─ layout/         # Header, CharacterBar
-│  ├─ character/      # CharacterDropdown, CharAvatar, StatChip
-│  ├─ equipment/      # ItemSlot, ObtainableItem, ItemDetailPanel, SourceCard, DiffBadge, RarityDot
+│  ├─ layout/         # Header (dropdown favoris), CharacterBar
+│  ├─ character/      # CharAvatar, CharacterDropdown, StatChip
+│  ├─ equipment/      # ItemSlot, ItemDetailPanel, SourceCard, DiffBadge, RarityDot
+│  ├─ profile/        # CharacterCard (cliquable → fiche)
 │  └─ ui/             # Button, Input, SegmentTabs
 ├─ lib/
-│  ├─ types.ts        # Types métier (Character, Item, etc.)
+│  ├─ types.ts        # Types métier (Character, EquippedItem, SelectedItem…)
 │  ├─ constants.ts    # Couleurs rareté / classe / difficulté
-│  ├─ mock-data.ts    # 3 personnages + items obtenables + sources
-│  └─ auth.ts         # Hash bcrypt + JWT (jose) + cookie httpOnly
+│  ├─ auth.ts         # bcrypt + JWT + cookies
+│  ├─ db.ts           # Connexion MongoDB singleton + exports modèles
+│  ├─ models/
+│  │  ├─ User.ts
+│  │  ├─ Character.ts
+│  │  ├─ SearchCache.ts    # Cache recherches publiques (TTL 1h)
+│  │  └─ ItemCache.ts      # Cache données items (TTL 7j)
+│  └─ services/
+│     ├─ bnetToken.ts      # Client credentials token BNet (singleton)
+│     └─ itemService.ts    # Orchestration Blizzard + WowHead + cache
 ├─ store/
-│  └─ character-store.ts   # Zustand : personnage sélectionné, catégorie, item actif
+│  └─ character-store.ts   # Zustand : personnage sélectionné, item actif
+├─ docs/
+│  └─ BNET_API_GUIDE.md
 ├─ .env.local.example
 └─ package.json
 ```
@@ -122,39 +141,49 @@ azero/
 
 ## Routes
 
-| Route | Description |
-|---|---|
-| `GET  /` | Dashboard principal (auth requis) |
-| `GET  /auth` | Connexion / Inscription |
-| `GET  /metiers` | Coming Soon |
-| `POST /api/auth/register` | Création de compte + session |
-| `POST /api/auth/login` | Connexion + session |
-| `POST /api/auth/logout` | Déconnexion (clear cookie) |
-| `GET  /api/characters` | Liste des personnages du compte |
-| `GET  /api/characters/:id` | Détail d'un personnage |
-| `GET  /api/items/:id/sources` | Sources d'obtention d'un item |
-| `GET  /api/items/slot/:slot` | Items obtenables pour un slot |
+| Route | Auth | Description |
+|---|---|---|
+| `GET  /` | Non | Formulaire de recherche de personnage |
+| `GET  /auth` | Non | Connexion / Inscription |
+| `GET  /personnage/[realm]/[name]` | Non | Fiche personnage publique |
+| `GET  /metiers` | Oui | Coming Soon |
+| `GET  /profil` | Oui | Compte + liaison BNet |
+| `POST /api/auth/register` | Non | Création de compte + session |
+| `POST /api/auth/login` | Non | Connexion + session |
+| `POST /api/auth/logout` | Non | Déconnexion |
+| `GET  /api/auth/bnet` | Oui | Initiation OAuth Battle.net |
+| `GET  /api/auth/bnet/callback` | Oui | Callback OAuth |
+| `POST /api/auth/bnet/disconnect` | Oui | Déconnexion BNet |
+| `GET  /api/characters` | Oui | Liste personnages max-level (triés) |
+| `GET  /api/characters/:id` | Oui | Détail personnage |
+| `POST /api/characters/:id/enrich` | Oui | Enrichissement lazy via BNet |
+| `GET  /api/characters/public/:realm/:name` | Non | Lookup public (SearchCache → BNet) |
+| `GET  /api/items/:id/sources` | Non | Stats + sources drop (ItemCache → BNet + WowHead) |
+| `GET  /api/items/slot/:slot` | Non | Items obtenables par slot |
+| `GET  /api/profile` | Oui | Données utilisateur + personnages |
+| `PUT  /api/profile/favorites` | Oui | Mise à jour favoris |
 
 ---
 
 ## Design system
 
-Le design est entièrement dark. Les tokens CSS principaux :
+Dark only. Tokens CSS principaux :
 
 ```css
---bg:         #0c0c10   /* fond global */
---surface:    #13131a   /* surface principale */
---gold:       #c9960c   /* or WoW */
+--bg:         #0c0c10
+--surface:    #13131a
+--gold:       #c9960c
 --gold-light: #f0b429
---purple:     #a855f7   /* épique */
---blue:       #38bdf8   /* rare */
---green:      #4ade80   /* peu commun */
---red:        #f87171   /* légendaire / M+ */
+--purple:     #a855f7
+--blue:       #38bdf8
+--green:      #4ade80
+--red:        #f87171
 --text:       #e2e2f0
 --text-dim:   #8888aa
+--text-muted: #55556a
 ```
 
-Typographie : **Rajdhani** (titres, noms d'items) · **Exo 2** (UI, labels, corps).
+Typographie : **Rajdhani** (titres, noms d'items) · **Exo 2** (UI, labels).
 
 ---
 
@@ -162,20 +191,23 @@ Typographie : **Rajdhani** (titres, noms d'items) · **Exo 2** (UI, labels, corp
 
 | Problème | Solution |
 |---|---|
-| Comptes perdus après redémarrage | Comportement normal V1 (store in-memory). |
-| Boucle de redirection sur `/auth` | Vérifier `AZERO_SESSION_SECRET` ≥ 32 caractères dans `.env.local`. |
-| Polices manquantes | Vérifier la connexion à `fonts.googleapis.com`. |
+| `MONGODB_URI not defined` | Ajouter `MONGODB_URI` dans `.env.local` |
+| Connexion MongoDB échoue | Vérifier les credentials Atlas + IP whitelist |
+| BNet OAuth échoue (`bnet_not_configured`) | Vérifier `BNET_CLIENT_ID`, `BNET_CLIENT_SECRET`, `BNET_REDIRECT_URI` |
+| Boucle de redirection sur `/auth` | Vérifier `AZERO_SESSION_SECRET` ≥ 32 caractères |
+| Fiche personnage lente (1ère fois) | Normal — fetch BNet + 20+ appels icônes. Cache TTL 1h ensuite. |
+| Polices manquantes | Vérifier connexion à `fonts.googleapis.com` |
 | Port 3000 occupé | `PORT=3001 npm run dev` |
 
 ---
 
-## Roadmap V2
+## Prochaines étapes
 
-- Connexion API Blizzard (Battle.net OAuth + Game Data + Profile API)
-- Page **Métiers** (progression par personnage)
-- Persistance DB (Prisma + PostgreSQL ou Supabase) — remplacer le store in-memory
-- Migration auth vers **NextAuth.js** (Battle.net provider)
-- Remplacement des emojis décoratifs par des icônes SVG (Lucide / Heroicons)
+- Page **Métiers** : progression par personnage (BNet professions API)
+- Instance info sur les sources d'items (Blizzard journal API → boss → zone)
+- Raider.IO API → score Mythic+
+- Remplacement emojis décoratifs par SVG (Lucide / Heroicons)
+- Support multi-régions (US / KR / TW)
 
 ---
 

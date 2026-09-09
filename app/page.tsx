@@ -1,255 +1,95 @@
-"use client";
-import { useEffect, useMemo, useState } from "react";
-import CharAvatar from "@/components/character/CharAvatar";
-import CharacterBar from "@/components/layout/CharacterBar";
-import Header from "@/components/layout/Header";
-import ItemDetailPanel from "@/components/equipment/ItemDetailPanel";
-import ItemSlot from "@/components/equipment/ItemSlot";
-import ObtainableItem from "@/components/equipment/ObtainableItem";
-import type { Character, ObtainableItemData } from "@/lib/types";
-import { useCharacterStore } from "@/store/character-store";
-
-const CATEGORY_TABS: { id: string; label: string }[] = [
-  { id: "head", label: "TÊTE" },
-  { id: "shoulders", label: "ÉPAULES" },
-  { id: "chest", label: "TORSE" },
-  { id: "legs", label: "JAMBES" }
-];
+'use client'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import Header from '@/components/layout/Header'
 
 export default function HomePage() {
-  const {
-    characters,
-    selectedCharId,
-    activeCategory,
-    selectedItem,
-    setCharacters,
-    selectCharacter,
-    setActiveCategory,
-    setSelectedItem
-  } = useCharacterStore();
+	const router = useRouter()
+	const [name, setName] = useState('')
+	const [realm, setRealm] = useState('')
 
-  const [obtainable, setObtainable] = useState<ObtainableItemData[]>([]);
-  const [loadingChars, setLoadingChars] = useState(true);
+	function handleSearch(e: React.FormEvent) {
+		e.preventDefault()
+		const n = name.trim().toLowerCase()
+		const r = realm.trim().toLowerCase().replace(/\s+/g, '-')
+		if (!n || !r) return
+		router.push(`/personnage/${encodeURIComponent(r)}/${encodeURIComponent(n)}`)
+	}
 
-  useEffect(() => {
-    fetch("/api/characters")
-      .then((r) => (r.ok ? r.json() : { characters: [] }))
-      .then((j) => setCharacters(j.characters as Character[]))
-      .finally(() => setLoadingChars(false));
-  }, [setCharacters]);
+	const inputStyle: React.CSSProperties = {
+		width: '100%',
+		padding: '10px 14px',
+		background: 'var(--surface2)',
+		border: '1px solid var(--border)',
+		borderRadius: 6,
+		color: 'var(--text)',
+		fontSize: 13,
+		fontFamily: "'Exo 2', sans-serif",
+		outline: 'none',
+		boxSizing: 'border-box',
+	}
 
-  useEffect(() => {
-    fetch(`/api/items/slot/${activeCategory}`)
-      .then((r) => (r.ok ? r.json() : { items: [] }))
-      .then((j) => setObtainable(j.items as ObtainableItemData[]));
-  }, [activeCategory]);
-
-  const char = useMemo(
-    () => characters.find((c) => c.id === selectedCharId) ?? characters[0],
-    [characters, selectedCharId]
-  );
-
-  if (loadingChars) {
-    return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", color: "var(--text-muted)" }}>
-        Chargement…
-      </div>
-    );
-  }
-
-  if (!char) {
-    return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", color: "var(--text-muted)" }}>
-        Aucun personnage disponible.
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
-      <Header active="home" />
-      <CharacterBar characters={characters} selectedId={char.id} onSelect={selectCharacter} />
-
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
-        <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 240px 1fr", overflow: "hidden" }}>
-          <div
-            style={{
-              padding: "14px 12px",
-              display: "flex",
-              flexDirection: "column",
-              gap: 6,
-              overflowY: "auto",
-              borderRight: "1px solid var(--border)"
-            }}
-          >
-            <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "1px", marginBottom: 4 }}>
-              ÉQUIPEMENT
-            </div>
-            {char.slotsLeft.map((slot) => (
-              <ItemSlot
-                key={slot.id}
-                slot={slot}
-                side="left"
-                isActive={selectedItem?.name === slot.item}
-                onSelect={setSelectedItem}
-              />
-            ))}
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 16,
-              borderRight: "1px solid var(--border)",
-              background: "var(--surface)"
-            }}
-          >
-            <div style={{ marginBottom: 10, textAlign: "center" }}>
-              <div
-                style={{
-                  fontSize: 20,
-                  fontFamily: "Rajdhani",
-                  fontWeight: 700,
-                  color: char.color,
-                  letterSpacing: 1
-                }}
-              >
-                {char.name}
-              </div>
-              <div style={{ fontSize: 10, color: "var(--text-dim)", marginTop: 2 }}>{char.title}</div>
-            </div>
-            <CharAvatar character={char} size={160} />
-            <div style={{ marginTop: 12, textAlign: "center" }}>
-              <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 4 }}>
-                {char.race} {char.spec} {char.class}
-              </div>
-              <div style={{ fontSize: 10, color: "var(--text-muted)" }}>
-                ‹{char.guild}› {char.realm}
-              </div>
-              <div style={{ marginTop: 10, display: "flex", gap: 6, justifyContent: "center" }}>
-                <span
-                  style={{
-                    padding: "3px 8px",
-                    background: "var(--surface3)",
-                    borderRadius: 3,
-                    fontSize: 10,
-                    color: "var(--text-dim)",
-                    border: "1px solid var(--border)"
-                  }}
-                >
-                  iLvl {char.ilvl}
-                </span>
-                <span
-                  style={{
-                    padding: "3px 8px",
-                    background: "var(--purple-dim)",
-                    borderRadius: 3,
-                    fontSize: 10,
-                    color: "var(--purple)",
-                    border: "1px solid rgba(168,85,247,0.2)"
-                  }}
-                >
-                  M+ {char.score}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div
-            style={{
-              padding: "14px 12px",
-              display: "flex",
-              flexDirection: "column",
-              gap: 6,
-              overflowY: "auto"
-            }}
-          >
-            <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "1px", marginBottom: 4 }}>
-              ÉQUIPEMENT RESTANT
-            </div>
-            {char.slotsRight.map((slot) => (
-              <ItemSlot
-                key={slot.id}
-                slot={slot}
-                side="right"
-                isActive={selectedItem?.name === slot.item}
-                onSelect={setSelectedItem}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div
-          style={{
-            borderTop: "1px solid var(--border)",
-            background: "var(--surface)",
-            flexShrink: 0,
-            height: 240,
-            display: "flex",
-            flexDirection: "column"
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              gap: 2,
-              padding: "8px 16px 0",
-              borderBottom: "1px solid var(--border)",
-              overflowX: "auto"
-            }}
-          >
-            {CATEGORY_TABS.map((cat) => {
-              const isActive = activeCategory === cat.id;
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
-                  style={{
-                    padding: "5px 14px",
-                    background: "transparent",
-                    border: "none",
-                    borderBottom: isActive ? "2px solid var(--gold)" : "2px solid transparent",
-                    color: isActive ? "var(--gold-light)" : "var(--text-muted)",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: "0.5px",
-                    cursor: "pointer",
-                    fontFamily: "'Exo 2', sans-serif",
-                    whiteSpace: "nowrap",
-                    transition: "all 0.15s"
-                  }}
-                >
-                  {cat.label}
-                </button>
-              );
-            })}
-          </div>
-          <div style={{ flex: 1, overflowY: "auto", padding: "10px 16px" }}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-                gap: 6
-              }}
-            >
-              {obtainable.map((item, i) => (
-                <ObtainableItem
-                  key={item.name}
-                  item={item}
-                  index={i}
-                  isActive={selectedItem?.name === item.name}
-                  onSelect={setSelectedItem}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {selectedItem && <ItemDetailPanel item={selectedItem} onClose={() => setSelectedItem(null)} />}
-      </div>
-    </div>
-  );
+	return (
+		<div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+			<Header active='home' />
+			<div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+				<div style={{ width: 380, padding: '0 20px' }}>
+					<div
+						style={{
+							fontFamily: 'Rajdhani',
+							fontSize: 26,
+							fontWeight: 700,
+							color: 'var(--gold-light)',
+							letterSpacing: 1,
+							marginBottom: 6,
+						}}
+					>
+						Rechercher un personnage
+					</div>
+					<div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 28 }}>
+						Explorez la fiche de n'importe quel personnage WoW sans connexion.
+					</div>
+					<form onSubmit={handleSearch} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+						<input
+							type='text'
+							placeholder='Nom du personnage'
+							value={name}
+							onChange={(e) => setName(e.target.value)}
+							required
+							style={inputStyle}
+						/>
+						<input
+							type='text'
+							placeholder='Royaume (ex: kirin-tor, hyjal…)'
+							value={realm}
+							onChange={(e) => setRealm(e.target.value)}
+							required
+							style={inputStyle}
+						/>
+						<button
+							type='submit'
+							style={{
+								padding: '10px 0',
+								background: 'var(--gold-dim)',
+								border: '1px solid rgba(201,150,12,0.5)',
+								borderRadius: 6,
+								color: 'var(--gold-light)',
+								fontSize: 13,
+								fontWeight: 600,
+								fontFamily: "'Exo 2', sans-serif",
+								letterSpacing: '0.5px',
+								cursor: 'pointer',
+								transition: 'all 0.15s',
+							}}
+						>
+							Rechercher
+						</button>
+					</form>
+					<div style={{ marginTop: 24, fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+						Région EU uniquement. Le nom du royaume doit être en slug (minuscules, tirets).
+					</div>
+				</div>
+			</div>
+		</div>
+	)
 }

@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs'
 import { jwtVerify, SignJWT } from 'jose'
 import { cookies } from 'next/headers'
+import { connectDB, UserModel } from './db'
 import type { SessionPayload, User } from './types'
 
 const SESSION_COOKIE = 'azero_session'
@@ -11,13 +12,11 @@ function getSecret(): Uint8Array {
 	return new TextEncoder().encode(raw)
 }
 
-const users = new Map<string, User>()
-
 export async function registerUser(input: { email: string; username: string; password: string }): Promise<User> {
+	await connectDB()
 	const email = input.email.trim().toLowerCase()
-	if (users.has(email)) {
-		throw new Error('Un compte existe déjà pour cet email.')
-	}
+	const existing = await UserModel.findOne({ email }).lean<User>()
+	if (existing) throw new Error('Un compte existe déjà pour cet email.')
 	const passwordHash = await bcrypt.hash(input.password, 10)
 	const user: User = {
 		id: crypto.randomUUID(),
@@ -26,12 +25,13 @@ export async function registerUser(input: { email: string; username: string; pas
 		passwordHash,
 		createdAt: new Date().toISOString(),
 	}
-	users.set(email, user)
+	await UserModel.create(user)
 	return user
 }
 
 export async function authenticateUser(email: string, password: string): Promise<User> {
-	const user = users.get(email.trim().toLowerCase())
+	await connectDB()
+	const user = await UserModel.findOne({ email: email.trim().toLowerCase() }).lean<User>()
 	if (!user) throw new Error('Identifiants invalides.')
 	const ok = await bcrypt.compare(password, user.passwordHash)
 	if (!ok) throw new Error('Identifiants invalides.')

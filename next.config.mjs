@@ -1,11 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  images: {
-    remotePatterns: [
-      { protocol: "https", hostname: "render.worldofwarcraft.com" }
-    ]
-  }
-};
+	reactStrictMode: true,
+	images: {
+		remotePatterns: [{ protocol: 'https', hostname: 'render.worldofwarcraft.com' }],
+	},
+}
 
-export default nextConfig;
+export default nextConfig

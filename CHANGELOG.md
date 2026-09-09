@@ -6,19 +6,119 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 
 ---
 
+## [0.2.0] — 2026-05-20
+
+### Ajouté
+
+#### Architecture base de données
+- Migration **NeDB → MongoDB + Mongoose** : remplacement complet de `@seald-io/nedb`
+- Modèles Mongoose : `User`, `Character`, `SearchCache`, `ItemCache`
+- `SearchCache` : cache public des recherches de personnages (TTL 1h, index unique `{realm, name, region}`)
+- `ItemCache` : cache des données d'items — stats Blizzard + sources WowHead (TTL 7 jours)
+- `lib/db.ts` : singleton de connexion MongoDB (pattern global Next.js)
+- `MONGODB_URI` ajouté dans `.env.local.example`
+
+#### Page d'accueil publique — recherche de personnage
+- Nouvelle homepage `/` : formulaire de recherche par nom + realm slug (aucune auth requise)
+- Accessible aux utilisateurs déconnectés
+- `GET /api/characters/public/[realm]/[name]` : client credentials BNet, cache-first (`SearchCache`)
+
+#### Fiche de personnage publique
+- Nouvelle route `/personnage/[realm]/[name]` : fiche complète via API publique BNet
+- Header visible dans tous les états (chargement, erreur, données)
+
+#### Enrichissement des items
+- `lib/services/bnetToken.ts` : token client credentials BNet partagé (singleton module)
+- `lib/services/itemService.ts` : orchestration Blizzard API + WowHead XML + cache MongoDB
+- Blizzard Game Data API → stats d'item en français (Endurance, Hâte, Maîtrise…)
+- WowHead XML (`/item={id}&xml`) → sources de drop : boss + taux de drop
+- `EquippedItem.itemId` + `SelectedItem.itemId` : ID numérique Blizzard propagé jusqu'au `ItemDetailPanel`
+- `GET /api/items/[id]/sources` : réécrit — accepte ID numérique, retourne stats + sources réelles
+- `ItemSlot` → `SelectedItem` : passage du `itemId` au clic
+- `ItemDetailPanel` : appel par ID numérique, skip si `itemId` absent
+
+#### Header — dropdown Personnages
+- Bouton PERSONNAGES visible uniquement pour utilisateurs connectés avec BNet lié
+- Dropdown avec liste des favoris (★) et sous-favoris (☆)
+- Fallback : lien direct vers premier personnage si aucun favori configuré
+- Fermeture au clic extérieur
+
+#### Navigation profil
+- Clic sur `CharacterCard` → navigation vers `/personnage/[realm]/[name]`
+- `onView` prop sur `CharacterCard` ; boutons internes avec `stopPropagation`
+
+#### Middleware — garde de routes sélective
+- `proxy.ts` : garde de routes ciblée (convention du projet)
+- `/metiers` et `/profil` redirigent vers `/auth` si non connecté
+- `/`, `/auth`, `/personnage/*` : accès libre
+- `/auth` redirige vers `/` si déjà connecté
+
+### Modifié
+
+- `lib/db.ts` : vérification `MONGODB_URI` déplacée dans `connectDB()` — plus de crash au démarrage
+- `app/auth/page.tsx` : Header ajouté (navigation visible sur la page d'auth)
+- `app/metiers/page.tsx` : vérification auth au montage
+- `Page` type Header : ajout de `'personnage'`
+- Routes enrich + public : `EquippedItem` inclut désormais `itemId`
+- `CharacterCard` : hover effect sur le conteneur + `onView` prop
+
+### Supprimé
+
+- `lib/mock-data.ts` (748 lignes) — remplacé par vraies données BNet + MongoDB
+- `@seald-io/nedb` dependency
+- `data/` directory (fichiers `.db` NeDB)
+
+---
+
+## [0.1.2] — 2026-05-19/20
+
+### Ajouté
+
+#### BNet OAuth
+- `GET  /api/auth/bnet` : initiation du flux OAuth Battle.net
+- `GET  /api/auth/bnet/callback` : échange du code, fetch des personnages WoW, stockage NeDB
+- `POST /api/auth/bnet/disconnect` : déconnexion BNet + suppression des personnages en DB
+- Page Profil : bouton CONNECTER / DÉCONNECTER Battle.net
+- `docs/BNET_API_GUIDE.md` : guide de configuration des credentials Battle.net
+
+#### Données réelles BNet
+- `GET /api/characters` : retourne les `BnetCharacter` depuis NeDB (filtrés `level === 90`)
+- `POST /api/characters/[id]/enrich` : enrichissement lazy — ilvl, spec, guilde, titre, avatar, équipement, or
+- Icônes d'items via BNet item media API (fetch en parallèle)
+- Auto-enrich si `slotsLeft.length === 0` au chargement de la page
+
+#### Favoris
+- `PUT /api/profile/favorites` : persiste `favoriteCharId` + `subFavoriteCharIds`
+- Tri `/api/characters` : favori → sous-favoris → alphabétique
+- `CharacterCard` : boutons ★ / ☆, bordures colorées
+
+#### Layout
+- Homepage 4 colonnes : `1fr 160px 160px 1fr`
+- Page Profil : 3 sections — ★ Principal · ☆ Sous-favoris · Personnages
+
+### Modifié
+
+- `Character.id` : `number` → `string` (`${name.toLowerCase()}-${realmSlug}`)
+- `BnetCharacter` : champs enrichis optionnels
+- `CharAvatar` : image réelle si `avatarUrl`, SVG fallback sinon
+- `ItemSlot` : image réelle si `iconUrl`, fallback initiales
+
+### Supprimé
+
+- Lien COLLECTIONS retiré du Header
+
+---
+
 ## [0.1.1] — 2026-05-06
 
 ### Modifié
 
 - Remplacement de `next lint` (ESLint) par **Biome** pour le linting
 - Ajout des scripts `lint` (`biome lint .`) et `lint:fix` (`biome lint --write --unsafe .`)
-- Ajout du script `format` (`biome format --write .`)
-- Suppression des scripts `biome:*` redondants
-- Suppression de `postcss.config.mjs` — config PostCSS déplacée dans `package.json` (section `"postcss"`)
+- Suppression de `postcss.config.mjs` — config PostCSS déplacée dans `package.json`
 - Suppression de `autoprefixer` (inutile avec Tailwind v4 + Lightning CSS)
 - Déplacement de `@tailwindcss/postcss` de `dependencies` vers `devDependencies`
 - Mise à jour : `zustand` 5.0.13
-- Suppression de `postcss`
 - Version bump : 0.1.0 → 0.1.1
 
 ---
@@ -33,57 +133,23 @@ Première version fonctionnelle (V1) — données mockées, auth locale.
 - Inscription email / pseudo / mot de passe avec hash bcrypt
 - Connexion avec session JWT signée HS256 (cookie `httpOnly`, `sameSite: lax`)
 - Déconnexion (clear cookie)
-- Garde de routes via `middleware.ts` : toute page hors `/auth` redirige vers l'auth si non connecté
-- Store utilisateurs en mémoire (`Map` JS) — volontairement éphémère en V1
+- Store utilisateurs en mémoire (`Map` JS)
 
 #### Dashboard principal (`/`)
-- Layout 3 colonnes : 8 slots équipés gauche · portrait central (240 px) · 8 slots équipés droite
-- Composant `ItemSlot` : icône colorée par rareté, nom Rajdhani, iLvl + enchant (prefix ✦), état actif avec border colorée
-- Composant `CharAvatar` : avatar SVG placeholder (initiales + dégradé radial par couleur de classe)
-- Composant `CharacterDropdown` : sélecteur de personnage coloré par classe, liste déroulante avec iLvl, fermeture au clic extérieur
-- Composant `StatChip` : chips Or / iLvl moyen / Score M+
-- Panel inférieur (240 px, hauteur fixe) avec onglets par slot (TÊTE / ÉPAULES / TORSE / JAMBES…)
-- Grille d'items obtenables `auto-fill minmax(220px, 1fr)` avec animations `fadeIn` staggerées (0.04 s par item)
-- `ObtainableItem` : icône iLvl, nom uppercase Rajdhani, dot rareté, badge SET, compteur joueurs
-- Detail Panel `position: fixed` (largeur 320 px) avec animation `slideInR` (translateX 24 px → 0, 0.22 s)
-- Detail Panel : header item, badges iLvl/rareté/enchant, liste de stats, sources d'obtention, footer hint
-- `SourceCard` : nom du boss, instance, badge difficulté coloré, plage iLvl, drop rate
-- `DiffBadge` : badge coloré par difficulté (LFR vert · Normal bleu · Héroïque violet · Mythique/M+ or · Craft rouge · Réputation gris)
-- `RarityDot` : point coloré par rareté
+- Layout 3 colonnes : slots gauche · portrait central · slots droite
+- Composants : `ItemSlot`, `CharAvatar`, `CharacterDropdown`, `StatChip`, `ObtainableItem`
+- Detail Panel `position: fixed` avec animation `slideInR`
+- Panel inférieur avec onglets par slot
 
 #### Pages
-- `/auth` : onglets CONNEXION / INSCRIPTION (SegmentTabs), validation temps réel confirmation mot de passe, état loading, redirect automatique après succès, décoration blob gold + purple en `blur(80px)`
-- `/metiers` : page Coming Soon avec icône ⚒️ et anneau dashed animé (spin 12 s)
+- `/auth` : onglets CONNEXION / INSCRIPTION
+- `/metiers` : Coming Soon
 
-#### API (Next.js Route Handlers)
-- `POST /api/auth/register` — création de compte + émission session
-- `POST /api/auth/login` — vérification bcrypt + émission session
-- `POST /api/auth/logout` — suppression du cookie de session
-- `GET  /api/characters` — liste des personnages du compte connecté
-- `GET  /api/characters/:id` — détail d'un personnage (équipement inclus)
-- `GET  /api/items/:id/sources` — sources d'obtention d'un item
-- `GET  /api/items/slot/:slot` — items obtenables pour un slot donné
-
-#### Infrastructure & tooling
-- Next.js App Router avec TypeScript strict
-- Tailwind CSS v4 + tokens CSS custom (`--bg`, `--surface`, `--gold`, etc.)
-- Zustand (`character-store`) : personnage sélectionné, catégorie active, item actif dans le Detail Panel
-- Biome (lint + format) en remplacement d'ESLint / Prettier
-- Polices Google Fonts : Rajdhani (700, 600) + Exo 2 (400–700)
-- `.env.local.example` avec `AZERO_SESSION_SECRET`
-- `SETUP.md` : documentation d'installation et de configuration
+#### API
+- `POST /api/auth/register` / `login` / `logout`
+- `GET  /api/characters` / `GET /api/characters/:id`
+- `GET  /api/items/:id/sources` / `GET /api/items/slot/:slot`
 
 #### Données mockées
 - 3 personnages : Kratós (Paladin), Aelindra (Mage), Thorvak (Chasseur)
-- Équipement complet (16 slots) par personnage avec raretés et enchantements
-- Items obtenables par slot avec sources (boss, instance, difficulté, iLvl, drop rate)
-
----
-
-## À venir — V2
-
-- Intégration API Blizzard (Battle.net OAuth, Game Data API, Profile API)
-- Page Métiers : progression par personnage
-- Persistance DB : Prisma + PostgreSQL (ou Supabase) — remplacement du store in-memory
-- Migration auth vers NextAuth.js (provider Battle.net)
-- Remplacement des emojis décoratifs par des icônes SVG (Lucide / Heroicons)
+- Items obtenables par slot avec sources complètes
