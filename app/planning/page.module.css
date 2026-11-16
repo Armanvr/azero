@@ -1,0 +1,488 @@
+.page {
+	min-height: 100dvh;
+	display: flex;
+	flex-direction: column;
+}
+
+.main {
+	flex: 1;
+	width: 100%;
+	max-width: 1280px;
+	margin: 0 auto;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	padding: 28px 40px;
+}
+
+.titleRow {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
+}
+
+.titles {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.h1 {
+	margin: 0;
+	font: 600 30px / 1.1 var(--font-display);
+	color: var(--text);
+}
+
+.sub {
+	font-size: 14px;
+	color: var(--text-dim);
+}
+
+.demo {
+	margin-left: 12px;
+	font-size: 11.5px;
+	color: var(--text-muted);
+}
+
+.switcher {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	height: 38px;
+	border: 1px solid var(--border);
+	border-radius: 3px;
+}
+
+.switcher button {
+	width: 38px;
+	height: 100%;
+	background: none;
+	border: none;
+	color: var(--text-dim);
+	cursor: pointer;
+	font-size: 15px;
+}
+
+.switcher button:hover {
+	color: var(--text);
+}
+
+.weekLabel {
+	min-width: 200px;
+	text-align: center;
+	font-size: 13.5px;
+	color: var(--text);
+}
+
+/* Day strip */
+.days {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	gap: 8px;
+}
+
+.day {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 14px;
+	border: 1px solid var(--border);
+	border-radius: 3px;
+	background: var(--surface);
+}
+
+.today {
+	background: var(--gold);
+	border-color: var(--gold);
+}
+
+.dayText {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.dow {
+	font: 600 10.5px var(--font-display);
+	letter-spacing: 0.16em;
+	color: var(--text-muted);
+}
+
+.num {
+	font: 600 20px / 1 var(--font-display);
+	color: var(--text);
+}
+
+.weekend .num {
+	color: var(--text-dim);
+}
+
+.today .dow,
+.today .num {
+	color: var(--on-gold);
+}
+
+.tag {
+	font-size: 11px;
+	color: var(--gold);
+}
+
+/* Layout */
+.grid {
+	flex: 1;
+	display: grid;
+	grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+	gap: 24px;
+	align-items: start;
+}
+
+.col {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	min-width: 0;
+}
+
+@media (max-width: 1000px) {
+	.grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.card {
+	display: flex;
+	flex-direction: column;
+	padding: 18px 20px;
+	border: 1px solid var(--border);
+	border-radius: 3px;
+	background: var(--surface);
+}
+
+.cardTitle {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 0;
+	font: 600 12px var(--font-display);
+	letter-spacing: 0.16em;
+	color: var(--gold);
+}
+
+.cardTitle::before {
+	content: "";
+	width: 5px;
+	height: 5px;
+	transform: rotate(45deg);
+	background: var(--gold);
+}
+
+/* Objectives */
+.objectives {
+	gap: 6px;
+}
+
+.count {
+	margin-left: auto;
+	font: 500 13px var(--font-body);
+	letter-spacing: 0;
+	color: var(--text);
+	font-variant-numeric: tabular-nums;
+}
+
+.progress {
+	height: 3px;
+	background: var(--track);
+	margin: 8px 0 6px;
+}
+
+.progress div {
+	height: 3px;
+	width: var(--pct);
+	background: var(--gold);
+	transition: width 0.3s;
+}
+
+.obj {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 9px 0;
+	background: none;
+	border: none;
+	border-bottom: 1px solid var(--border-soft);
+	cursor: pointer;
+	text-align: left;
+	font: 400 14px var(--font-body);
+}
+
+.box {
+	flex: none;
+	width: 16px;
+	height: 16px;
+	border: 1px solid var(--gold-dark);
+	border-radius: 2px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--on-gold);
+	font-size: 11px;
+	line-height: 1;
+}
+
+.objDone .box {
+	background: var(--gold);
+	border-color: var(--gold);
+}
+
+.objLabel {
+	flex: 1;
+	color: var(--text);
+}
+
+.objCount {
+	color: var(--text-muted);
+	font-variant-numeric: tabular-nums;
+}
+
+.objDone .objLabel {
+	color: var(--text-dim);
+}
+
+.objDone .objCount {
+	color: var(--gold);
+}
+
+/* Tracking table */
+.trow {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) 120px;
+	gap: 24px;
+}
+
+.thead {
+	padding: 0 4px 10px;
+	border-bottom: 1px solid var(--border);
+	font: 600 11px var(--font-display);
+	letter-spacing: 0.16em;
+	color: var(--text-muted);
+}
+
+.right {
+	text-align: right;
+}
+
+.tbody {
+	align-items: center;
+	padding: 11px 4px;
+	border-bottom: 1px solid var(--border-soft);
+}
+
+.who {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	min-width: 0;
+}
+
+.avatar {
+	flex: none;
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	border: 1px solid var(--gold-dark);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font: 600 12px var(--font-display);
+	color: var(--gold);
+}
+
+.whoText {
+	display: flex;
+	flex-direction: column;
+}
+
+.charName {
+	font-size: 14px;
+	color: var(--text);
+}
+
+.charClass {
+	font-size: 12px;
+	color: var(--text-dim);
+}
+
+.chips {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+
+.chip {
+	font-size: 12px;
+	padding: 3px 9px;
+	border-radius: 2px;
+	border: 1px solid var(--border);
+	color: var(--text-dim);
+}
+
+.chipDone {
+	border-color: var(--gold-dim);
+	color: var(--gold-light);
+}
+
+.frac {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	align-items: flex-end;
+	font-size: 13px;
+	color: var(--text);
+	font-variant-numeric: tabular-nums;
+}
+
+.track {
+	width: 100%;
+	height: 2px;
+	background: var(--track);
+}
+
+.track div {
+	height: 2px;
+	width: var(--pct);
+	background: var(--gold-dim);
+}
+
+/* Right column */
+.reset {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 20px;
+	border: 1px solid var(--border-strong);
+	border-radius: 3px;
+	background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 7%, transparent), transparent), var(--surface);
+}
+
+.resetTitle {
+	margin: 0;
+	font: 600 11px var(--font-display);
+	letter-spacing: 0.18em;
+	color: var(--text-dim);
+}
+
+.countdown {
+	font: 600 40px / 1 var(--font-display);
+	color: var(--gold-light);
+}
+
+.resetDate {
+	font-size: 13px;
+	color: var(--text-dim);
+}
+
+.resetNote {
+	font-size: 12.5px;
+	line-height: 1.5;
+	color: var(--text-muted);
+}
+
+.list {
+	gap: 12px;
+}
+
+.alert {
+	display: flex;
+	gap: 12px;
+	font-size: 13.5px;
+	color: var(--text);
+}
+
+.dot {
+	flex: none;
+	width: 6px;
+	height: 6px;
+	margin-top: 7px;
+	border-radius: 50%;
+}
+
+.red {
+	background: var(--red);
+}
+
+.dot.green {
+	background: var(--green);
+}
+
+.alertText {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.detail {
+	font-size: 12.5px;
+	color: var(--text-dim);
+}
+
+.cd {
+	display: flex;
+	justify-content: space-between;
+	padding: 7px 0;
+	font-size: 13.5px;
+	color: var(--text);
+	font-variant-numeric: tabular-nums;
+}
+
+.cd .green {
+	color: var(--green);
+}
+
+.wait {
+	color: var(--gold-light);
+}
+
+@media (max-width: 760px) {
+	.main {
+		padding: 20px 16px;
+	}
+
+	.switcher {
+		width: 100%;
+	}
+
+	.weekLabel {
+		flex: 1;
+		min-width: 0;
+	}
+
+	/* The 7 days keep a readable width and scroll inside their own strip */
+	.days {
+		grid-template-columns: repeat(7, minmax(84px, 1fr));
+		overflow-x: auto;
+		padding-bottom: 4px;
+	}
+
+	.day {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 6px;
+	}
+
+	.thead {
+		display: none;
+	}
+
+	/* Character + progress on the first line, chips below */
+	.trow {
+		grid-template-columns: minmax(0, 1fr) 90px;
+		gap: 10px 16px;
+	}
+
+	.chips {
+		grid-column: 1 / -1;
+		grid-row: 2;
+	}
+}

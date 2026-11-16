@@ -1,26 +1,6 @@
-export type ItemRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'purple'
+export type ItemRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'
 
 export type Difficulty = 'LFR' | 'Normal' | 'Heroïque' | 'Mythique' | 'M+' | 'Craft' | 'Réputation' | 'Quête'
-
-export type EquipmentSlot =
-	| 'head'
-	| 'neck'
-	| 'shoulders'
-	| 'back'
-	| 'chest'
-	| 'wrist'
-	| 'tabard'
-	| 'hands'
-	| 'gloves'
-	| 'belt'
-	| 'legs'
-	| 'boots'
-	| 'ring1'
-	| 'ring2'
-	| 'trinket1'
-	| 'trinket2'
-	| 'mainhand'
-	| 'offhand'
 
 export type WowClass =
 	| 'Paladin'
@@ -63,18 +43,26 @@ export interface EquippedItem {
 	iconUrl?: string
 }
 
-export interface ObtainableItemData {
-	name: string
-	rarity: ItemRarity
-	isSet: boolean
-	count: number
-	ilvl: number
+export interface CharacterStats {
+	primary: { label: string; value: number }[] // main stat + Endurance
+	secondary: { label: string; pct: number }[] // Hâte, Critique, Maîtrise, Polyvalence (percent)
 }
 
-export interface ObtainableCategory {
-	id: string
-	label: string
-	items: ObtainableItemData[]
+export interface Profession {
+	name: string
+	tier: number // Blizzard tier id: higher = more recent expansion
+	skill: number
+	max: number
+}
+
+export interface ProfessionCharacter {
+	id: string // `name-realmslug`
+	name: string
+	realmSlug: string
+	class: WowClass
+	spec: string
+	level: number
+	professions: Profession[] // primary professions only, at most 2
 }
 
 export interface Character {
@@ -84,13 +72,15 @@ export interface Character {
 	race: string
 	class: WowClass
 	spec: string
+	level?: number
+	renderUrl?: string // full-body Blizzard render (`main-raw`)
+	lastLogin?: number // ms timestamp
+	stats?: CharacterStats
 	ilvl: number
 	realm: string
 	guild: string
 	faction: 'horde' | 'alliance'
-	score: number
 	gold: number
-	color: string
 	avatarUrl?: string
 	slotsLeft: EquippedItem[]
 	slotsRight: EquippedItem[]
@@ -102,9 +92,8 @@ export interface User {
 	email: string
 	username: string
 	passwordHash: string
+	recoveryCodeHash?: string
 	createdAt: string
-	bnetAccessToken?: string
-	bnetTokenExpiry?: number
 	bnetConnected?: boolean
 	favoriteCharId?: string
 	subFavoriteCharIds?: string[]
@@ -115,16 +104,6 @@ export interface SessionPayload {
 	email: string
 	username: string
 	[key: string]: unknown
-}
-
-export interface SelectedItem {
-	name: string
-	itemId?: number // Blizzard item ID — used for detail lookups
-	ilvl: number
-	rarity: ItemRarity
-	enchant?: string | null
-	slot?: string
-	isSet?: boolean
 }
 
 export interface BnetCharacter {
@@ -142,7 +121,6 @@ export interface BnetCharacter {
 	fetchedAt: string
 	// Enriched fields (populated lazily via POST /api/characters/[id]/enrich)
 	avatarUrl?: string
-	mainRawUrl?: string
 	ilvl?: number
 	spec?: string
 	specId?: number
@@ -153,4 +131,7 @@ export interface BnetCharacter {
 	slotsRight?: EquippedItem[]
 	slotsWeapon?: EquippedItem[]
 	enrichedAt?: string
+	// Cached by GET /api/professions for one hour
+	professions?: Profession[]
+	professionsFetchedAt?: number // ms timestamp
 }

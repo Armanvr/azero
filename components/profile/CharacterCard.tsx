@@ -1,60 +1,44 @@
 'use client'
-import { useState } from 'react'
+import Link from 'next/link'
+import { type CSSProperties, useState } from 'react'
+import { characterPath, charId as makeCharId } from '@/lib/characterPath'
+import { CLASS_COLORS } from '@/lib/constants'
 import type { BnetCharacter } from '@/lib/types'
-
-const FACTION_COLORS = {
-	horde: 'var(--red)',
-	alliance: '#6CA6F0',
-} as const
-
-const CLASS_COLORS: Record<number, string> = {
-	1: '#C69B3A',
-	2: '#F48CBA',
-	3: '#AAD372',
-	4: '#FFF468',
-	5: '#FFFFFF',
-	6: '#C41E3A',
-	7: '#0070DD',
-	8: '#3FC7EB',
-	9: '#8788EE',
-	10: '#00FF98',
-	11: '#FF7C0A',
-	12: '#A330C9',
-	13: '#33937F',
-}
+import styles from './CharacterCard.module.css'
 
 interface Props {
 	char: BnetCharacter
 	isFavorite: boolean
 	isSubFavorite: boolean
-	onRefreshed?: (updated: BnetCharacter) => void
+	// a favourites save is in flight: stars are locked so clicks cannot overwrite each other
+	saving: boolean
+	onRefreshed: (updated: BnetCharacter) => void
 	onFavoriteToggle: (charId: string) => void
 	onSubFavoriteToggle: (charId: string) => void
-	onView?: (charId: string) => void
 }
 
 export default function CharacterCard({
 	char,
 	isFavorite,
 	isSubFavorite,
+	saving,
 	onRefreshed,
 	onFavoriteToggle,
 	onSubFavoriteToggle,
-	onView,
 }: Props) {
 	const [refreshing, setRefreshing] = useState(false)
-	const classColor = CLASS_COLORS[char.classId] ?? 'var(--text)'
-	const factionColor = FACTION_COLORS[char.faction]
-	const charId = `${char.name.toLowerCase()}-${char.realmSlug}`
+	const [refreshError, setRefreshError] = useState(false)
+	const charId = makeCharId(char.name, char.realmSlug)
 
 	async function handleRefresh() {
 		setRefreshing(true)
+		setRefreshError(false)
 		try {
 			const res = await fetch(`/api/characters/${charId}/enrich`, { method: 'POST' })
-			if (res.ok && onRefreshed) {
-				const data = await res.json()
-				onRefreshed(data.character as BnetCharacter)
-			}
+			if (!res.ok) throw new Error()
+			onRefreshed((await res.json()).character as BnetCharacter)
+		} catch {
+			setRefreshError(true)
 		} finally {
 			setRefreshing(false)
 		}
@@ -62,159 +46,80 @@ export default function CharacterCard({
 
 	return (
 		<div
-			onClick={() => onView?.(charId)}
-			style={{
-				background: 'var(--surface)',
-				border: `1px solid ${isFavorite ? 'rgba(240,180,41,0.5)' : isSubFavorite ? 'rgba(168,85,247,0.35)' : 'var(--border)'}`,
-				borderRadius: 6,
-				padding: '10px 12px',
-				display: 'flex',
-				flexDirection: 'column',
-				gap: 4,
-				position: 'relative',
-				cursor: onView ? 'pointer' : 'default',
-				transition: 'border-color 0.15s',
-			}}
-			onMouseEnter={(e) => {
-				if (onView)
-					e.currentTarget.style.borderColor = isFavorite
-						? 'rgba(240,180,41,0.8)'
-						: isSubFavorite
-							? 'rgba(168,85,247,0.6)'
-							: 'var(--border2)'
-			}}
-			onMouseLeave={(e) => {
-				if (onView)
-					e.currentTarget.style.borderColor = isFavorite
-						? 'rgba(240,180,41,0.5)'
-						: isSubFavorite
-							? 'rgba(168,85,247,0.35)'
-							: 'var(--border)'
-			}}
+			className={styles.card}
+			data-fav={isFavorite ? 'main' : isSubFavorite ? 'sub' : undefined}
+			style={{ '--class-color': CLASS_COLORS[char.classId] ?? 'var(--text)' } as CSSProperties}
 		>
-			{/* Favorite indicators */}
-			<div style={{ position: 'absolute', top: 6, right: 6, display: 'flex', gap: 2 }}>
+			<div className={styles.stars}>
 				<button
 					type='button'
-					onClick={(e) => {
-						e.stopPropagation()
-						onFavoriteToggle(charId)
-					}}
-					title={isFavorite ? 'Retirer des favoris' : 'Définir comme personnage principal'}
-					style={{
-						width: 20,
-						height: 20,
-						background: 'none',
-						border: 'none',
-						cursor: 'pointer',
-						padding: 0,
-						fontSize: 13,
-						lineHeight: 1,
-						color: isFavorite ? '#f0b429' : 'var(--text-muted)',
-						opacity: isFavorite ? 1 : 0.5,
-					}}
+					className={styles.star}
+					data-kind='main'
+					data-on={isFavorite || undefined}
+					aria-label={`${isFavorite ? 'Retirer des favoris' : 'Définir comme personnage principal'} : ${char.name}`}
+					aria-pressed={isFavorite}
+					disabled={saving}
+					onClick={() => onFavoriteToggle(charId)}
+					title={`${isFavorite ? 'Retirer des favoris' : 'Définir comme personnage principal'} : ${char.name}`}
 				>
 					★
 				</button>
 				{!isFavorite && (
 					<button
 						type='button'
-						onClick={(e) => {
-							e.stopPropagation()
-							onSubFavoriteToggle(charId)
-						}}
-						title={isSubFavorite ? 'Retirer des sous-favoris' : 'Ajouter aux sous-favoris'}
-						style={{
-							width: 20,
-							height: 20,
-							background: 'none',
-							border: 'none',
-							cursor: 'pointer',
-							padding: 0,
-							fontSize: 13,
-							lineHeight: 1,
-							color: isSubFavorite ? '#a855f7' : 'var(--text-muted)',
-							opacity: isSubFavorite ? 1 : 0.4,
-						}}
+						className={styles.star}
+						data-kind='sub'
+						data-on={isSubFavorite || undefined}
+						aria-label={`${isSubFavorite ? 'Retirer des sous-favoris' : 'Ajouter aux sous-favoris'} : ${char.name}`}
+						aria-pressed={isSubFavorite}
+						disabled={saving}
+						onClick={() => onSubFavoriteToggle(charId)}
+						title={`${isSubFavorite ? 'Retirer des sous-favoris' : 'Ajouter aux sous-favoris'} : ${char.name}`}
 					>
 						☆
 					</button>
 				)}
 			</div>
 
-			<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingRight: 44 }}>
-				<span
-					style={{
-						fontSize: 13,
-						fontWeight: 600,
-						color: classColor,
-						fontFamily: 'Rajdhani',
-						letterSpacing: 0.5,
-					}}
-				>
+			<div className={`${styles.row} ${styles.head}`}>
+				<Link href={characterPath(char.name, char.realmSlug)} className={styles.name}>
 					{char.name}
-				</span>
-				<span style={{ fontSize: 10, color: factionColor, fontWeight: 700, letterSpacing: 0.5 }}>
+				</Link>
+				<span className={styles.faction} data-faction={char.faction}>
 					{char.faction === 'horde' ? 'HORDE' : 'ALLIANCE'}
 				</span>
 			</div>
-			<div style={{ fontSize: 11, color: 'var(--text-dim)' }}>
+			<div className={styles.desc}>
 				{char.raceName} {char.spec ? `${char.spec} ` : ''}
 				{char.className}
 			</div>
-			<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
-				<span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{char.realm}</span>
-				<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+			<div className={`${styles.row} ${styles.realmRow}`}>
+				<span className={styles.realm}>{char.realm}</span>
+				<div className={styles.chips}>
 					{char.ilvl != null && char.ilvl > 0 && (
-						<span
-							style={{
-								fontSize: 10,
-								padding: '2px 6px',
-								background: 'var(--surface3)',
-								border: '1px solid var(--border)',
-								borderRadius: 3,
-								color: 'var(--gold-light)',
-							}}
-						>
+						<span className={styles.chip} data-kind='ilvl'>
 							iLvl {char.ilvl}
 						</span>
 					)}
-					<span
-						style={{
-							fontSize: 10,
-							padding: '2px 6px',
-							background: 'var(--surface3)',
-							border: '1px solid var(--border)',
-							borderRadius: 3,
-							color: 'var(--text-dim)',
-						}}
-					>
-						Niv. {char.level}
-					</span>
+					<span className={styles.chip}>Niv. {char.level}</span>
 				</div>
 			</div>
-			{char.guildName && <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>‹{char.guildName}›</div>}
-			<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
-				<span style={{ fontSize: 9, color: 'var(--text-muted)' }}>
+			{char.guildName && <div className={styles.guild}>‹{char.guildName}›</div>}
+			{refreshError && (
+				<div role='alert' className={styles.error}>
+					Actualisation impossible. Réessayez.
+				</div>
+			)}
+			<div className={`${styles.row} ${styles.footer}`}>
+				<span className={styles.updated}>
 					{char.enrichedAt ? `Màj ${new Date(char.enrichedAt).toLocaleDateString('fr-FR')}` : 'Non enrichi'}
 				</span>
 				<button
 					type='button'
-					onClick={(e) => {
-						e.stopPropagation()
-						handleRefresh()
-					}}
+					className={styles.refresh}
+					onClick={handleRefresh}
 					disabled={refreshing}
-					style={{
-						fontSize: 10,
-						padding: '2px 8px',
-						background: 'var(--surface2)',
-						border: '1px solid var(--border2)',
-						borderRadius: 3,
-						color: refreshing ? 'var(--text-muted)' : 'var(--text-dim)',
-						cursor: refreshing ? 'default' : 'pointer',
-						fontFamily: "'Exo 2', sans-serif",
-					}}
+					aria-label={`Actualiser ${char.name}`}
 				>
 					{refreshing ? '…' : '↻'}
 				</button>

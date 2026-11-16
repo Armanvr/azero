@@ -1,11 +1,10 @@
 import { XMLParser } from 'fast-xml-parser'
 import { connectDB } from '@/lib/db'
 import type { ItemCacheDoc } from '@/lib/models/ItemCache'
-import { BNET_DIFF_LABELS, BNET_STAT_LABELS, ItemCacheModel, makeItemExpiry } from '@/lib/models/ItemCache'
+import { BNET_STAT_LABELS, ItemCacheModel, makeItemExpiry } from '@/lib/models/ItemCache'
 import type { Difficulty, ItemSource } from '@/lib/types'
-import { bnetFetch, getBnetClientToken } from './bnetToken'
+import { bnetFetch, EU_BASE, getBnetClientToken } from './bnetToken'
 
-const EU_BASE = 'https://eu.api.blizzard.com'
 const WOWHEAD_BASE = 'https://www.wowhead.com'
 
 // ─── Blizzard item fetch ────────────────────────────────────────────────────
@@ -132,11 +131,6 @@ async function fetchWowheadSources(itemId: number): Promise<ItemSource[]> {
 	}
 }
 
-// ─── Blizzard journal — enrich sources with instance names ─────────────────
-
-// Map WowHead NPC name fragments to known instances (fallback, best-effort)
-// Full solution would require journal crawl; this covers common cases.
-
 // ─── Public entry point ─────────────────────────────────────────────────────
 
 export async function getItemData(itemId: number): Promise<ItemCacheDoc | null> {
@@ -169,10 +163,12 @@ export async function getItemData(itemId: number): Promise<ItemCacheDoc | null> 
 		expiresAt: makeItemExpiry(),
 	}
 
-	// 3. Save to cache (fire-and-forget)
-	connectDB()
-		.then(() => ItemCacheModel.findOneAndUpdate({ itemId }, { $set: doc }, { upsert: true, new: true }))
-		.catch(() => {})
+	// 3. Save to cache (fire-and-forget), only when Blizzard answered: an empty name would be served for 7 days
+	if (bnetData) {
+		connectDB()
+			.then(() => ItemCacheModel.findOneAndUpdate({ itemId }, { $set: doc }, { upsert: true, new: true }))
+			.catch(() => {})
+	}
 
 	return doc
 }

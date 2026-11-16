@@ -1,0 +1,155 @@
+.main {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	max-width: 1280px;
+	margin: 0 auto;
+	padding: 28px 40px;
+}
+
+.title {
+	margin: 0;
+	font: 600 30px / 1.1 var(--font-display);
+	color: var(--text);
+}
+
+.subtitle {
+	margin: 6px 0 0;
+	font-size: 14px;
+	color: var(--text-dim);
+}
+
+.card {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	padding: 18px 20px;
+	border: 1px solid var(--border);
+	border-radius: 3px;
+	background: var(--surface);
+}
+
+.cardTitle {
+	margin: 0;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font: 600 12px var(--font-display);
+	letter-spacing: 0.16em;
+	color: var(--gold);
+}
+
+.diamond {
+	width: 5px;
+	height: 5px;
+	transform: rotate(45deg);
+	background: var(--gold);
+}
+
+.form {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+	gap: 12px;
+	align-items: end;
+}
+
+/* Overrides on the shared Input / Button */
+.form .input {
+	background: var(--bg);
+}
+
+.form .submit {
+	height: 44px;
+	padding: 0 24px;
+	font-size: 12px;
+}
+
+.hint {
+	margin: 0;
+	font-size: 12.5px;
+	color: var(--text-muted);
+}
+
+.list {
+	display: flex;
+	flex-direction: column;
+}
+
+.row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 70px;
+	gap: 32px;
+	align-items: center;
+	padding: 0 4px;
+}
+
+.headRow {
+	padding-bottom: 10px;
+	border-bottom: 1px solid var(--border);
+	font: 600 11px var(--font-display);
+	letter-spacing: 0.16em;
+	color: var(--text-muted);
+}
+
+.charRow {
+	padding-top: 13px;
+	padding-bottom: 13px;
+	border-bottom: 1px solid var(--border-soft);
+	color: inherit;
+}
+
+.charRow:hover,
+.charRow:focus-visible {
+	background: var(--hover);
+	color: inherit;
+}
+
+.who {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.avatar {
+	width: 36px;
+	height: 36px;
+	flex: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	border: 1px solid var(--gold-dark);
+	font: 600 14px var(--font-display);
+	color: var(--gold);
+}
+
+.whoText {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.charName {
+	font-size: 14.5px;
+	color: var(--text);
+}
+
+.charMeta {
+	font-size: 12.5px;
+	color: var(--text-dim);
+}
+
+.ilvl {
+	font: 600 15px var(--font-display);
+	color: var(--gold-light);
+}
+
+@media (max-width: 760px) {
+	.main {
+		padding: 20px 16px;
+	}
+
+	.form {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}

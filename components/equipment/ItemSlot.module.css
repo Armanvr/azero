@@ -1,0 +1,91 @@
+.slot {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 2px;
+	margin: -2px;
+	border: 0;
+	border-radius: 3px;
+	background: none;
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.slot[data-empty] {
+	--rarity: var(--border);
+	cursor: default;
+}
+
+.slot[data-side="right"] {
+	flex-direction: row-reverse;
+	text-align: right;
+}
+
+.slot[data-side="weapon"] {
+	padding: 0;
+	margin: 0;
+}
+
+.slot[data-active] {
+	background: color-mix(in srgb, var(--gold) 7%, transparent);
+}
+
+.icon {
+	width: 52px;
+	height: 52px;
+	flex: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+	border: 1px solid color-mix(in srgb, var(--rarity) 44%, transparent);
+	border-radius: 3px;
+	background: var(--surface2);
+}
+
+.slot[data-active] .icon {
+	border-color: var(--rarity);
+}
+
+.icon img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.abbr {
+	font-family: var(--font-display);
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	color: var(--text-muted);
+}
+
+.body {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.name,
+.empty {
+	font-size: 12.5px;
+	line-height: 1.25;
+}
+
+.name {
+	color: var(--rarity);
+}
+
+.empty {
+	color: var(--text-muted);
+}
+
+.ilvl {
+	font-size: 11.5px;
+	color: var(--text-muted);
+}

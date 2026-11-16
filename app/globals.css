@@ -1,25 +1,29 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 :root {
-	--bg: #0c0c10;
-	--surface: #13131a;
-	--surface2: #1a1a24;
-	--surface3: #22222f;
-	--border: #2a2a3a;
-	--border2: #363650;
-	--gold: #c9960c;
-	--gold-light: #f0b429;
-	--gold-dim: rgba(201, 150, 12, 0.15);
-	--purple: #a855f7;
-	--purple-dim: rgba(168, 85, 247, 0.15);
-	--blue: #38bdf8;
-	--green: #4ade80;
-	--red: #f87171;
-	--text: #e2e2f0;
-	--text-dim: #8888aa;
-	--text-muted: #55556a;
+	--bg: #0d0c0a;
+	--bg-deep: #080706;
+	--surface: #12100d;
+	--surface2: #14120f;
+	--hover: #13110e;
+	--border: #2a241b;
+	--border-header: #221e17;
+	--border-soft: #1f1b15;
+	--border-strong: #3a3123;
+	--track: #24201a;
+	--gold: #c9a45f;
+	--gold-light: #d4af6a;
+	--gold-dim: #8f7645;
+	--gold-dark: #5a4a2c;
+	--on-gold: #14100a;
+	--text: #ece3cf;
+	--text-dim: #9a8f7a;
+	--text-muted: #6b6252;
+	--green: #7fb069;
+	--red: #c8553d;
+	--rarity-legendary: #e08a3c;
+	--rarity-epic: #a57bd6;
+	--rarity-rare: #5b95d6;
+	--font-display: var(--font-cinzel), serif;
+	--font-body: var(--font-figtree), system-ui, sans-serif;
 }
 
 *,
@@ -28,16 +32,38 @@
 	box-sizing: border-box;
 }
 
-html,
 body {
-	height: 100%;
-	background: var(--bg);
+	margin: 0;
+	min-height: 100dvh;
+	background:
+		radial-gradient(ellipse 70% 50% at 50% -8%, color-mix(in srgb, var(--gold) 10%, transparent), transparent 70%),
+		var(--bg);
 	color: var(--text);
-	font-family: "Exo 2", sans-serif;
+	font-family: var(--font-body);
+	-webkit-font-smoothing: antialiased;
 }
 
-body {
-	min-height: 100vh;
+a {
+	color: var(--gold-light);
+	text-decoration: none;
+}
+
+a:hover {
+	color: var(--text);
+}
+
+:focus-visible {
+	outline: 2px solid var(--gold-light);
+	outline-offset: 2px;
+}
+
+button,
+input {
+	font-family: inherit;
+}
+
+input::placeholder {
+	color: var(--text-muted);
 }
 
 ::-webkit-scrollbar {
@@ -48,34 +74,18 @@ body {
 	background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-	background: var(--border2);
+	background: var(--border-strong);
 	border-radius: 2px;
 }
 
-@keyframes fadeIn {
-	from {
-		opacity: 0;
-		transform: translateY(6px);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
-}
-
-@keyframes slideInR {
-	from {
-		opacity: 0;
-		transform: translateX(24px);
-	}
-	to {
-		opacity: 1;
-		transform: translateX(0);
+/* biome-ignore-start lint/complexity/noImportantStyles: reduced motion must beat module rules */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-delay: 0s !important;
+		transition-duration: 0.01ms !important;
 	}
 }
-
-@keyframes spin {
-	to {
-		transform: rotate(360deg);
-	}
-}
+/* biome-ignore-end lint/complexity/noImportantStyles: reduced motion must beat module rules */

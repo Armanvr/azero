@@ -1,38 +1,60 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import Header from '@/components/layout/Header'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
-import SegmentTabs from '@/components/ui/SegmentTabs'
+import RecoveryCode from '@/components/ui/RecoveryCode'
+import styles from './page.module.css'
 
-type Tab = 'login' | 'register'
+type Mode = 'login' | 'register' | 'reset' | 'recovery'
+
+const EMPTY_FORM = { email: '', password: '', username: '', recoveryCode: '' }
+
+const COPY = {
+	login: { title: 'Bon retour, aventurier', sub: 'Connectez-vous pour retrouver vos héros.' },
+	register: { title: 'Rejoignez la chronique', sub: 'Créez votre compte en quelques secondes.' },
+	reset: {
+		title: 'Mot de passe oublié',
+		sub: 'Saisissez votre e-mail, votre code de récupération et un nouveau mot de passe.',
+	},
+	recovery: { title: 'Votre code de récupération', sub: '' },
+}
 
 export default function AuthPage() {
 	const router = useRouter()
-	const [tab, setTab] = useState<Tab>('login')
-	const [form, setForm] = useState({ email: '', password: '', username: '', confirm: '' })
+	const [mode, setMode] = useState<Mode>('login')
+	const [form, setForm] = useState(EMPTY_FORM)
+	const [remember, setRemember] = useState(true)
+	const [showPwd, setShowPwd] = useState(false)
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState('')
+	const [issuedCode, setIssuedCode] = useState('')
 
-	function update<K extends keyof typeof form>(key: K) {
-		return (e: React.ChangeEvent<HTMLInputElement>) => setForm((p) => ({ ...p, [key]: e.target.value }))
+	const update = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
+		setForm((p) => ({ ...p, [key]: e.target.value }))
+
+	function goTo(next: Mode) {
+		setMode(next)
+		setForm(EMPTY_FORM)
+		setShowPwd(false)
+		setError('')
 	}
 
 	async function submit(e: React.FormEvent) {
 		e.preventDefault()
 		setError('')
-		if (tab === 'register' && form.password !== form.confirm) {
-			setError('Les mots de passe ne correspondent pas.')
-			return
-		}
 		setLoading(true)
+		const body =
+			mode === 'reset'
+				? { email: form.email, recoveryCode: form.recoveryCode, password: form.password }
+				: mode === 'register'
+					? { email: form.email, username: form.username, password: form.password }
+					: { email: form.email, password: form.password, remember }
 		try {
-			const url = tab === 'login' ? '/api/auth/login' : '/api/auth/register'
-			const res = await fetch(url, {
+			const res = await fetch(`/api/auth/${mode}`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(form),
+				body: JSON.stringify(body),
 			})
 			const json = await res.json()
 			if (!res.ok) {
@@ -40,161 +62,208 @@ export default function AuthPage() {
 				setLoading(false)
 				return
 			}
-			router.replace('/')
-			router.refresh()
+			if (json.recoveryCode) {
+				// the code is only returned once: show it before leaving the page
+				setIssuedCode(json.recoveryCode)
+				setLoading(false)
+				goTo('recovery')
+				return
+			}
+			done()
 		} catch {
 			setError('Impossible de contacter le serveur.')
 			setLoading(false)
 		}
 	}
 
-	return (
-		<div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-			<Header active='home' />
-			<div
-				style={{
-					flex: 1,
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'center',
-					background: 'var(--bg)',
-					padding: 20,
-				}}
-			>
-				<div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-					<div
-						style={{
-							position: 'absolute',
-							top: '20%',
-							left: '30%',
-							width: 400,
-							height: 400,
-							borderRadius: '50%',
-							background: 'var(--gold)',
-							opacity: 0.03,
-							filter: 'blur(80px)',
-						}}
-					/>
-					<div
-						style={{
-							position: 'absolute',
-							bottom: '20%',
-							right: '25%',
-							width: 300,
-							height: 300,
-							borderRadius: '50%',
-							background: 'var(--purple)',
-							opacity: 0.04,
-							filter: 'blur(60px)',
-						}}
-					/>
-				</div>
+	function done() {
+		router.replace('/')
+		router.refresh()
+	}
 
-				<div style={{ width: '100%', maxWidth: 380, animation: 'fadeIn 0.3s ease' }}>
-					<div style={{ textAlign: 'center', marginBottom: 32 }}>
-						<div
-							style={{
-								fontSize: 28,
-								fontFamily: 'Rajdhani',
-								fontWeight: 700,
-								letterSpacing: 4,
-								color: 'var(--gold-light)',
-							}}
-						>
-							AZERO
-						</div>
-						<div style={{ fontSize: 11, color: 'var(--text-muted)', letterSpacing: 2, marginTop: 4 }}>
-							ARMORY DASHBOARD
-						</div>
+	const errorBox = error && (
+		<div role='alert' className={styles.error}>
+			{error}
+		</div>
+	)
+
+	const toggle = (
+		<button type='button' className={styles.toggle} onClick={() => setShowPwd((s) => !s)}>
+			{showPwd ? 'Masquer' : 'Afficher'}
+		</button>
+	)
+	const pwdType = showPwd ? 'text' : 'password'
+	const isTabs = mode === 'login' || mode === 'register'
+	const { title, sub } = COPY[mode]
+
+	return (
+		<div className={styles.page}>
+			<div className={styles.art}>
+				<div className={styles.tagline}>
+					<span className={styles.kicker}>ARMURERIE DE COMPTE</span>
+					<span className={styles.slogan}>Tous vos héros, une seule chronique.</span>
+				</div>
+			</div>
+
+			<main className={styles.panel}>
+				<div className={styles.box}>
+					<div className={styles.head}>
+						<span className={styles.diamond} />
+						<h1 className={styles.title}>{title}</h1>
+						{sub && <p className={styles.sub}>{sub}</p>}
 					</div>
 
-					<div
-						style={{
-							background: 'var(--surface)',
-							border: '1px solid var(--border)',
-							borderRadius: 8,
-							padding: 28,
-						}}
-					>
-						<div style={{ marginBottom: 24 }}>
-							<SegmentTabs<Tab>
-								tabs={[
-									{ id: 'login', label: 'CONNEXION' },
-									{ id: 'register', label: 'INSCRIPTION' },
-								]}
-								active={tab}
-								onChange={(id) => {
-									setTab(id)
-									setError('')
-								}}
-							/>
+					{isTabs && (
+						<div className={styles.tabs}>
+							<button
+								type='button'
+								className={styles.tab}
+								disabled={loading}
+								data-active={mode === 'login' || undefined}
+								onClick={() => goTo('login')}
+							>
+								CONNEXION
+							</button>
+							<button
+								type='button'
+								className={styles.tab}
+								disabled={loading}
+								data-active={mode === 'register' || undefined}
+								onClick={() => goTo('register')}
+							>
+								INSCRIPTION
+							</button>
 						</div>
+					)}
 
-						<form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-							{tab === 'register' && (
-								<Input
-									label='PSEUDO'
-									placeholder='Votre pseudo'
-									value={form.username}
-									onChange={update('username')}
-									required
-								/>
-							)}
+					{mode === 'recovery' ? (
+						<div className={styles.form}>
+							<RecoveryCode code={issuedCode} />
+							<p className={styles.warning}>
+								Ce code n&apos;est affiché qu&apos;une seule fois. C&apos;est le seul moyen de récupérer
+								votre compte si vous oubliez votre mot de passe : conservez-le en lieu sûr. Il remplace
+								votre code précédent après une réinitialisation.
+							</p>
+							<Button type='button' onClick={done}>
+								J&apos;AI NOTÉ MON CODE
+							</Button>
+						</div>
+					) : mode === 'reset' ? (
+						<form onSubmit={submit} className={styles.form}>
 							<Input
-								label='EMAIL'
+								label='E-mail'
 								type='email'
-								placeholder='votre@email.com'
+								placeholder='vous@exemple.fr'
+								autoComplete='email'
 								value={form.email}
 								onChange={update('email')}
 								required
 							/>
 							<Input
-								label='MOT DE PASSE'
-								type='password'
-								placeholder='••••••••'
-								value={form.password}
-								onChange={update('password')}
+								label='Code de récupération'
+								placeholder='XXXX-XXXX-XXXX-XXXX'
+								autoComplete='off'
+								spellCheck={false}
+								value={form.recoveryCode}
+								onChange={update('recoveryCode')}
 								required
 							/>
-							{tab === 'register' && (
+							<Input
+								label='Nouveau mot de passe'
+								type={pwdType}
+								placeholder='••••••••'
+								autoComplete='new-password'
+								value={form.password}
+								onChange={update('password')}
+								action={toggle}
+								required
+							/>
+							{errorBox}
+							<Button type='submit' loading={loading}>
+								RÉINITIALISER
+							</Button>
+							<button
+								type='button'
+								className={styles.link}
+								disabled={loading}
+								onClick={() => goTo('login')}
+							>
+								← Retour à la connexion
+							</button>
+						</form>
+					) : (
+						<>
+							<form onSubmit={submit} className={styles.form}>
+								{mode === 'register' && (
+									<Input
+										label="Nom d'aventurier"
+										placeholder='Aldric'
+										autoComplete='nickname'
+										value={form.username}
+										onChange={update('username')}
+										required
+									/>
+								)}
 								<Input
-									label='CONFIRMER'
-									type='password'
-									placeholder='••••••••'
-									value={form.confirm}
-									onChange={update('confirm')}
+									label='E-mail'
+									type='email'
+									placeholder='vous@exemple.fr'
+									autoComplete={mode === 'login' ? 'username' : 'email'}
+									value={form.email}
+									onChange={update('email')}
 									required
 								/>
-							)}
-
-							{error && (
-								<div
-									style={{
-										fontSize: 11,
-										color: 'var(--red)',
-										padding: '8px 10px',
-										background: 'rgba(248,113,113,0.08)',
-										borderRadius: 4,
-										border: '1px solid rgba(248,113,113,0.2)',
-									}}
+								<Input
+									label='Mot de passe'
+									type={pwdType}
+									placeholder='••••••••'
+									autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+									value={form.password}
+									onChange={update('password')}
+									action={toggle}
+									required
+								/>
+								{mode === 'login' && (
+									<div className={styles.options}>
+										<label className={styles.remember}>
+											<input
+												type='checkbox'
+												className={styles.check}
+												checked={remember}
+												onChange={(e) => setRemember(e.target.checked)}
+											/>
+											Se souvenir de moi
+										</label>
+										<button
+											type='button'
+											className={styles.link}
+											disabled={loading}
+											onClick={() => goTo('reset')}
+										>
+											Mot de passe oublié&nbsp;?
+										</button>
+									</div>
+								)}
+								{errorBox}
+								<Button type='submit' loading={loading}>
+									{mode === 'login' ? 'SE CONNECTER' : 'CRÉER MON COMPTE'}
+								</Button>
+							</form>
+							<p className={styles.switch}>
+								{mode === 'login' ? 'Pas encore de compte ?' : 'Déjà inscrit ?'}{' '}
+								<button
+									type='button'
+									className={styles.link}
+									disabled={loading}
+									onClick={() => goTo(mode === 'login' ? 'register' : 'login')}
 								>
-									{error}
-								</div>
-							)}
-
-							<Button type='submit' loading={loading}>
-								{tab === 'login' ? 'SE CONNECTER' : 'CRÉER UN COMPTE'}
-							</Button>
-						</form>
-					</div>
-
-					{tab === 'login' && (
-						<div style={{ textAlign: 'center', marginTop: 16, fontSize: 11, color: 'var(--text-muted)' }}>
-							Démo : créez un compte via l&apos;onglet Inscription
-						</div>
+									{mode === 'login' ? 'Créer un compte' : 'Se connecter'}
+								</button>
+							</p>
+						</>
 					)}
 				</div>
-			</div>
+			</main>
 		</div>
 	)
 }

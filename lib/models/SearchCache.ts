@@ -7,7 +7,7 @@ export interface SearchCacheDoc {
 	realm: string // realm slug, lowercase
 	name: string // character name, lowercase
 	region: string
-	character: Character
+	character?: Character | null // null = Blizzard answered 404 (negative cache)
 	fetchedAt: Date
 	expiresAt: Date
 }
@@ -17,7 +17,7 @@ const searchCacheSchema = new Schema<SearchCacheDoc>(
 		realm: { type: String, required: true },
 		name: { type: String, required: true },
 		region: { type: String, required: true, default: 'eu' },
-		character: { type: Schema.Types.Mixed, required: true },
+		character: { type: Schema.Types.Mixed, default: null },
 		fetchedAt: { type: Date, required: true },
 		expiresAt: { type: Date, required: true, index: { expireAfterSeconds: 0 } },
 	},
@@ -31,6 +31,6 @@ export const SearchCacheModel =
 	(mongoose.models.SearchCache as mongoose.Model<SearchCacheDoc>) ??
 	mongoose.model<SearchCacheDoc>('SearchCache', searchCacheSchema)
 
-export function makeExpiry(): Date {
-	return new Date(Date.now() + CACHE_TTL_SECONDS * 1000)
+export function makeExpiry(ttlMs = CACHE_TTL_SECONDS * 1000): Date {
+	return new Date(Date.now() + ttlMs)
 }

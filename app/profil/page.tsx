@@ -1,10 +1,14 @@
 'use client'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { type FormEvent, useCallback, useEffect, useState } from 'react'
 import Header from '@/components/layout/Header'
 import CharacterCard from '@/components/profile/CharacterCard'
 import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
+import RecoveryCode from '@/components/ui/RecoveryCode'
+import { charId as makeCharId } from '@/lib/characterPath'
 import type { BnetCharacter } from '@/lib/types'
+import styles from './page.module.css'
 
 interface ProfileUser {
 	id: string
@@ -24,339 +28,297 @@ interface ProfileData {
 export default function ProfilPage() {
 	const router = useRouter()
 	const [data, setData] = useState<ProfileData | null>(null)
-	const [loading, setLoading] = useState(true)
+	const [loadError, setLoadError] = useState(false)
+	const [actionError, setActionError] = useState<string | null>(null)
 	const [disconnecting, setDisconnecting] = useState(false)
+	const [password, setPassword] = useState('')
+	const [generating, setGenerating] = useState(false)
+	const [recoveryCode, setRecoveryCode] = useState<string | null>(null)
+	const [recoveryError, setRecoveryError] = useState<string | null>(null)
+	const [saving, setSaving] = useState(false)
+
+	const load = useCallback(async () => {
+		setLoadError(false)
+		setData(null)
+		try {
+			const res = await fetch('/api/profile')
+			if (res.status === 401) return router.replace('/auth')
+			if (!res.ok) throw new Error()
+			setData((await res.json()) as ProfileData)
+		} catch {
+			setLoadError(true)
+		}
+	}, [router])
 
 	useEffect(() => {
-		fetch('/api/profile')
-			.then((r) => {
-				if (r.status === 401) {
-					router.replace('/auth')
-					return null
-				}
-				return r.ok ? r.json() : null
-			})
-			.then((j) => j && setData(j as ProfileData))
-			.finally(() => setLoading(false))
-	}, [router])
+		load()
+	}, [load])
 
 	async function disconnect() {
 		setDisconnecting(true)
-		await fetch('/api/auth/bnet/disconnect', { method: 'POST' })
-		const res = await fetch('/api/profile')
-		if (res.ok) setData((await res.json()) as ProfileData)
-		setDisconnecting(false)
+		setActionError(null)
+		try {
+			const res = await fetch('/api/auth/bnet/disconnect', { method: 'POST' })
+			if (!res.ok) throw new Error()
+			const profile = await fetch('/api/profile')
+			if (profile.ok) setData((await profile.json()) as ProfileData)
+		} catch {
+			setActionError('Déconnexion impossible. Réessayez.')
+		} finally {
+			setDisconnecting(false)
+		}
 	}
 
-	async function handleFavoriteToggle(charId: string) {
+	// Updates the UI only once the server has accepted the change
+	async function saveFavorites(body: { favoriteCharId?: string | null; subFavoriteCharIds: string[] }) {
+		setSaving(true)
+		setActionError(null)
+		try {
+			const res = await fetch('/api/profile/favorites', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(body),
+			})
+			if (!res.ok) throw new Error()
+			setData((prev) => (prev ? { ...prev, user: { ...prev.user, ...body } } : prev))
+		} catch {
+			setActionError('Impossible d’enregistrer vos favoris. Réessayez.')
+		} finally {
+			setSaving(false)
+		}
+	}
+
+	async function generateRecoveryCode(e: FormEvent) {
+		e.preventDefault()
+		setGenerating(true)
+		setRecoveryError(null)
+		setRecoveryCode(null)
+		try {
+			const res = await fetch('/api/profile/recovery-code', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ password }),
+			})
+			const json = await res.json().catch(() => ({}))
+			if (res.ok && json.recoveryCode) {
+				setRecoveryCode(json.recoveryCode)
+				setPassword('')
+			} else {
+				setRecoveryError(json.error ?? 'Erreur lors de la génération du code.')
+			}
+		} catch {
+			setRecoveryError('Erreur réseau')
+		} finally {
+			setGenerating(false)
+		}
+	}
+
+	function handleFavoriteToggle(charId: string) {
 		if (!data) return
-		const newFavoriteId = data.user.favoriteCharId === charId ? null : charId
-		// If setting as favorite, remove from sub-favorites
-		const newSubs = (data.user.subFavoriteCharIds ?? []).filter((id) => id !== newFavoriteId)
-		await fetch('/api/profile/favorites', {
-			method: 'PUT',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ favoriteCharId: newFavoriteId, subFavoriteCharIds: newSubs }),
-		})
-		setData((prev) =>
-			prev
-				? { ...prev, user: { ...prev.user, favoriteCharId: newFavoriteId, subFavoriteCharIds: newSubs } }
-				: prev,
-		)
+		const favoriteCharId = data.user.favoriteCharId === charId ? null : charId
+		// A main character cannot also be a sub-favourite
+		const subFavoriteCharIds = (data.user.subFavoriteCharIds ?? []).filter((id) => id !== favoriteCharId)
+		return saveFavorites({ favoriteCharId, subFavoriteCharIds })
 	}
 
-	async function handleSubFavoriteToggle(charId: string) {
+	function handleSubFavoriteToggle(charId: string) {
 		if (!data) return
 		const current = data.user.subFavoriteCharIds ?? []
-		const newSubs = current.includes(charId) ? current.filter((id) => id !== charId) : [...current, charId]
-		await fetch('/api/profile/favorites', {
-			method: 'PUT',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ subFavoriteCharIds: newSubs }),
+		return saveFavorites({
+			subFavoriteCharIds: current.includes(charId) ? current.filter((id) => id !== charId) : [...current, charId],
 		})
-		setData((prev) => (prev ? { ...prev, user: { ...prev.user, subFavoriteCharIds: newSubs } } : prev))
 	}
 
-	if (loading) {
-		return (
-			<div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-				<Header active='profil' />
-				<div
-					style={{
-						flex: 1,
-						display: 'flex',
-						alignItems: 'center',
-						justifyContent: 'center',
-						color: 'var(--text-muted)',
-					}}
-				>
-					Chargement…
-				</div>
-			</div>
-		)
-	}
-
-	if (!data) return null
-
-	const { user, characters } = data
-	const memberDate = new Date(user.createdAt).toLocaleDateString('fr-FR')
+	const user = data?.user
+	const characters = data?.characters ?? []
 
 	return (
-		<div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
-			<Header active='profil' />
-			<div
-				style={{
-					flex: 1,
-					overflowY: 'auto',
-					padding: '32px 24px',
-					maxWidth: 720,
-					margin: '0 auto',
-					width: '100%',
-				}}
-			>
-				{/* User info */}
-				<div
-					style={{
-						background: 'var(--surface)',
-						border: '1px solid var(--border)',
-						borderRadius: 8,
-						padding: '20px 24px',
-						display: 'flex',
-						alignItems: 'center',
-						gap: 16,
-						marginBottom: 16,
-					}}
-				>
-					<div
-						style={{
-							width: 48,
-							height: 48,
-							borderRadius: '50%',
-							background: 'var(--surface3)',
-							border: '1px solid var(--border2)',
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-							fontSize: 20,
-							flexShrink: 0,
-						}}
-					>
-						👤
-					</div>
-					<div>
-						<div
-							style={{
-								fontSize: 16,
-								fontFamily: 'Rajdhani',
-								fontWeight: 700,
-								color: 'var(--gold-light)',
-								letterSpacing: 1,
-							}}
-						>
-							{user.username}
-						</div>
-						<div style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 2 }}>{user.email}</div>
-						<div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-							Membre depuis {memberDate}
-						</div>
-					</div>
-				</div>
-
-				{/* Battle.net section */}
-				<div
-					style={{
-						background: 'var(--surface)',
-						border: '1px solid var(--border)',
-						borderRadius: 8,
-						padding: '20px 24px',
-						marginBottom: 16,
-					}}
-				>
-					<div style={{ fontSize: 11, color: 'var(--text-muted)', letterSpacing: 2, marginBottom: 12 }}>
-						BATTLE.NET
-					</div>
-					{user.bnetConnected ? (
-						<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-							<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-								<span style={{ color: '#22c55e', fontSize: 14 }}>●</span>
-								<span style={{ fontSize: 13, color: 'var(--text)' }}>Compte connecté</span>
-							</div>
-							<Button loading={disconnecting} onClick={disconnect}>
-								DÉCONNECTER
-							</Button>
+		<>
+			<Header />
+			{!user ? (
+				<main className={styles.loading}>
+					{loadError ? (
+						<div className={styles.state}>
+							<p>Impossible de charger le profil.</p>
+							<button type='button' className={styles.retry} onClick={load}>
+								Réessayer
+							</button>
 						</div>
 					) : (
-						<div
-							style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}
-						>
-							<span style={{ fontSize: 12, color: 'var(--text-dim)' }}>
-								Connectez votre compte pour importer vos personnages.
-							</span>
-							<Button onClick={() => router.push('/api/auth/bnet')}>CONNECTER BATTLE.NET</Button>
+						'Chargement…'
+					)}
+				</main>
+			) : (
+				<main className={styles.content}>
+					{/* User info */}
+					<div className={styles.user}>
+						<div className={styles.avatar}>{user.username[0]?.toUpperCase()}</div>
+						<div>
+							<div className={styles.username}>{user.username}</div>
+							<div className={styles.email}>{user.email}</div>
+							<div className={styles.since}>
+								Membre depuis {new Date(user.createdAt).toLocaleDateString('fr-FR')}
+							</div>
+						</div>
+					</div>
+
+					{/* Battle.net section */}
+					<div className={styles.card}>
+						<h2 className={styles.label}>BATTLE.NET</h2>
+						{user.bnetConnected ? (
+							<div className={styles.bnetRow}>
+								<span className={styles.connected}>Compte connecté</span>
+								<Button
+									className={`${styles.compact} ${styles.secondary}`}
+									loading={disconnecting}
+									onClick={disconnect}
+								>
+									DÉCONNECTER
+								</Button>
+							</div>
+						) : (
+							<div className={styles.bnetRow}>
+								<span className={styles.hint}>
+									Connectez votre compte pour importer vos personnages.
+								</span>
+								<Button
+									className={styles.compact}
+									onClick={() => window.location.assign('/api/auth/bnet')}
+								>
+									CONNECTER BATTLE.NET
+								</Button>
+							</div>
+						)}
+					</div>
+
+					{/* Recovery code */}
+					<div className={styles.card}>
+						<h2 className={styles.label}>CODE DE RÉCUPÉRATION</h2>
+						<p className={styles.recoveryText}>
+							Ce code vous permet de réinitialiser un mot de passe oublié depuis l&apos;écran de
+							connexion. Il n&apos;est affiché qu&apos;une seule fois : conservez-le en lieu sûr. Générer
+							un nouveau code invalide le précédent.
+						</p>
+						<form className={styles.recoveryForm} onSubmit={generateRecoveryCode}>
+							<Input
+								id='recovery-password'
+								label='Mot de passe actuel'
+								type='password'
+								autoComplete='current-password'
+								required
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+							/>
+							<Button type='submit' loading={generating}>
+								Générer un nouveau code
+							</Button>
+						</form>
+						{recoveryError && (
+							<div role='alert' className={styles.error}>
+								{recoveryError}
+							</div>
+						)}
+						{recoveryCode && (
+							<>
+								<div className={styles.codeBox}>
+									<RecoveryCode code={recoveryCode} />
+								</div>
+								<div className={styles.codeHint}>Notez-le maintenant : il ne sera plus affiché.</div>
+							</>
+						)}
+					</div>
+
+					{actionError && (
+						<div role='alert' className={styles.error}>
+							{actionError}
 						</div>
 					)}
-				</div>
 
-				{/* Characters */}
-				{user.bnetConnected &&
-					(() => {
-						if (characters.length === 0) {
+					{/* Characters */}
+					{user.bnetConnected &&
+						(() => {
+							if (characters.length === 0) {
+								return <div className={styles.empty}>Aucun personnage trouvé.</div>
+							}
+
+							const getCharId = (c: (typeof characters)[0]) => makeCharId(c.name, c.realmSlug)
+							const subFavIds = new Set(user.subFavoriteCharIds ?? [])
+							const favoriteChar = characters.find((c) => getCharId(c) === user.favoriteCharId)
+							const subFavChars = characters.filter((c) => subFavIds.has(getCharId(c)))
+							const otherChars = characters.filter((c) => {
+								const id = getCharId(c)
+								return id !== user.favoriteCharId && !subFavIds.has(id)
+							})
+
+							const renderCard = (char: (typeof characters)[0]) => {
+								const charId = getCharId(char)
+								return (
+									<CharacterCard
+										key={`${char.name}-${char.realmSlug}`}
+										char={char}
+										isFavorite={user.favoriteCharId === charId}
+										isSubFavorite={subFavIds.has(charId)}
+										saving={saving}
+										onFavoriteToggle={handleFavoriteToggle}
+										onSubFavoriteToggle={handleSubFavoriteToggle}
+										onRefreshed={(updated) =>
+											setData((prev) =>
+												prev
+													? {
+															...prev,
+															characters: prev.characters.map((c) =>
+																c.name === updated.name &&
+																c.realmSlug === updated.realmSlug
+																	? updated
+																	: c,
+															),
+														}
+													: prev,
+											)
+										}
+									/>
+								)
+							}
+
 							return (
-								<div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Aucun personnage trouvé.</div>
-							)
-						}
+								<div className={styles.groups}>
+									<div className={styles.legend}>★ = personnage principal · ☆ = sous-favori</div>
 
-						const getCharId = (c: (typeof characters)[0]) => `${c.name.toLowerCase()}-${c.realmSlug}`
-						const subFavIds = new Set(user.subFavoriteCharIds ?? [])
-						const favoriteChar = characters.find((c) => getCharId(c) === user.favoriteCharId)
-						const subFavChars = characters.filter((c) => subFavIds.has(getCharId(c)))
-						const otherChars = characters.filter((c) => {
-							const id = getCharId(c)
-							return id !== user.favoriteCharId && !subFavIds.has(id)
-						})
+									{favoriteChar && (
+										<div>
+											<div className={styles.groupTitle} data-kind='main'>
+												<span>★</span>
+												<span>PERSONNAGE PRINCIPAL</span>
+											</div>
+											<div className={styles.box} data-kind='main'>
+												<div className={styles.cards}>{renderCard(favoriteChar)}</div>
+											</div>
+										</div>
+									)}
 
-						const renderCard = (char: (typeof characters)[0]) => {
-							const charId = getCharId(char)
-							return (
-								<CharacterCard
-									key={`${char.name}-${char.realmSlug}`}
-									char={char}
-									isFavorite={user.favoriteCharId === charId}
-									isSubFavorite={subFavIds.has(charId)}
-									onFavoriteToggle={handleFavoriteToggle}
-									onSubFavoriteToggle={handleSubFavoriteToggle}
-									onView={() =>
-										router.push(`/personnage/${char.realmSlug}/${char.name.toLowerCase()}`)
-									}
-									onRefreshed={(updated) =>
-										setData((prev) =>
-											prev
-												? {
-														...prev,
-														characters: prev.characters.map((c) =>
-															c.name === updated.name && c.realmSlug === updated.realmSlug
-																? updated
-																: c,
-														),
-													}
-												: prev,
-										)
-									}
-								/>
-							)
-						}
+									{subFavChars.length > 0 && (
+										<div>
+											<div className={styles.groupTitle} data-kind='sub'>
+												<span>☆</span>
+												<span>SOUS-FAVORIS</span>
+											</div>
+											<div className={styles.box} data-kind='sub'>
+												<div className={styles.cards}>{subFavChars.map(renderCard)}</div>
+											</div>
+										</div>
+									)}
 
-						return (
-							<div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-								{/* Hint */}
-								<div style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-									★ = personnage principal · ☆ = sous-favori
+									{otherChars.length > 0 && (
+										<div>
+											<div className={styles.groupTitle}>PERSONNAGES ({otherChars.length})</div>
+											<div className={styles.cards}>{otherChars.map(renderCard)}</div>
+										</div>
+									)}
 								</div>
-
-								{/* Favorite section */}
-								{favoriteChar && (
-									<div>
-										<div
-											style={{
-												fontSize: 11,
-												color: 'var(--gold-light)',
-												letterSpacing: 2,
-												marginBottom: 10,
-												display: 'flex',
-												alignItems: 'center',
-												gap: 6,
-											}}
-										>
-											<span>★</span>
-											<span>PERSONNAGE PRINCIPAL</span>
-										</div>
-										<div
-											style={{
-												background: 'rgba(240,180,41,0.04)',
-												border: '1px solid rgba(240,180,41,0.2)',
-												borderRadius: 8,
-												padding: 12,
-											}}
-										>
-											<div
-												style={{
-													display: 'grid',
-													gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-													gap: 8,
-												}}
-											>
-												{renderCard(favoriteChar)}
-											</div>
-										</div>
-									</div>
-								)}
-
-								{/* Sub-favorites section */}
-								{subFavChars.length > 0 && (
-									<div>
-										<div
-											style={{
-												fontSize: 11,
-												color: '#a855f7',
-												letterSpacing: 2,
-												marginBottom: 10,
-												display: 'flex',
-												alignItems: 'center',
-												gap: 6,
-											}}
-										>
-											<span>☆</span>
-											<span>SOUS-FAVORIS</span>
-										</div>
-										<div
-											style={{
-												background: 'rgba(168,85,247,0.04)',
-												border: '1px solid rgba(168,85,247,0.15)',
-												borderRadius: 8,
-												padding: 12,
-											}}
-										>
-											<div
-												style={{
-													display: 'grid',
-													gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-													gap: 8,
-												}}
-											>
-												{subFavChars.map(renderCard)}
-											</div>
-										</div>
-									</div>
-								)}
-
-								{/* Other characters */}
-								{otherChars.length > 0 && (
-									<div>
-										<div
-											style={{
-												fontSize: 11,
-												color: 'var(--text-muted)',
-												letterSpacing: 2,
-												marginBottom: 10,
-											}}
-										>
-											PERSONNAGES ({otherChars.length})
-										</div>
-										<div
-											style={{
-												display: 'grid',
-												gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-												gap: 8,
-											}}
-										>
-											{otherChars.map(renderCard)}
-										</div>
-									</div>
-								)}
-							</div>
-						)
-					})()}
-			</div>
-		</div>
+							)
+						})()}
+				</main>
+			)}
+		</>
 	)
 }

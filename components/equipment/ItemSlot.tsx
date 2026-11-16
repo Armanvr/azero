@@ -1,125 +1,57 @@
 'use client'
 import Image from 'next/image'
+import type { CSSProperties } from 'react'
 import { RARITY_COLORS } from '@/lib/constants'
-import type { EquippedItem, SelectedItem } from '@/lib/types'
+import type { EquippedItem } from '@/lib/types'
+import styles from './ItemSlot.module.css'
 
 interface Props {
 	slot: EquippedItem
-	side: 'left' | 'right'
+	side: 'left' | 'right' | 'weapon'
 	isActive: boolean
-	onSelect: (item: SelectedItem) => void
+	onSelect: (id: string) => void
 }
 
 export default function ItemSlot({ slot, side, isActive, onSelect }: Props) {
-	const rc = RARITY_COLORS[slot.rarity] || '#9d9d9d'
-
-	const Icon = (
-		<div
-			style={{
-				width: 32,
-				height: 32,
-				borderRadius: 3,
-				background: `${rc}18`,
-				border: `1px solid ${rc}44`,
-				flexShrink: 0,
-				display: 'flex',
-				alignItems: 'center',
-				justifyContent: 'center',
-				overflow: 'hidden',
-			}}
-		>
-			{slot.iconUrl ? (
-				<Image src={slot.iconUrl} alt={slot.item} width={32} height={32} style={{ objectFit: 'cover' }} />
-			) : (
-				<span
-					style={{
-						fontSize: 9,
-						color: rc,
-						fontFamily: 'Rajdhani',
-						fontWeight: 700,
-						textAlign: 'center',
-						lineHeight: 1.1,
-					}}
-				>
-					{slot.label.slice(0, 3).toUpperCase()}
+	const hasItem = Boolean(slot.item)
+	const content = (
+		<>
+			<span className={styles.icon}>
+				{slot.iconUrl ? (
+					<Image src={slot.iconUrl} alt='' width={50} height={50} />
+				) : (
+					<span className={styles.abbr}>{slot.label.slice(0, 2).toUpperCase()}</span>
+				)}
+			</span>
+			{side !== 'weapon' && (
+				<span className={styles.body}>
+					<span className={hasItem ? styles.name : styles.empty}>{hasItem ? slot.item : slot.label}</span>
+					{hasItem && <span className={styles.ilvl}>{slot.ilvl}</span>}
 				</span>
 			)}
-		</div>
+		</>
 	)
-
+	// An empty slot is not selectable: plain row, not a button
+	if (!hasItem) {
+		return (
+			<div className={styles.slot} data-side={side} data-empty title={slot.label}>
+				{content}
+			</div>
+		)
+	}
 	return (
 		<button
 			type='button'
-			onClick={() =>
-				onSelect({
-					name: slot.item,
-					itemId: slot.itemId,
-					ilvl: slot.ilvl,
-					rarity: slot.rarity,
-					enchant: slot.enchant,
-					slot: slot.label,
-				})
-			}
-			style={{
-				display: 'flex',
-				alignItems: 'center',
-				gap: 8,
-				padding: '6px 8px',
-				borderRadius: 4,
-				background: isActive ? 'var(--surface3)' : 'var(--surface2)',
-				border: `1px solid ${isActive ? `${rc}88` : 'var(--border)'}`,
-				cursor: 'pointer',
-				transition: 'all 0.15s',
-				minHeight: 44,
-			}}
-			onMouseEnter={(e) => {
-				if (!isActive) {
-					e.currentTarget.style.borderColor = 'var(--border2)'
-					e.currentTarget.style.background = 'var(--surface3)'
-				}
-			}}
-			onMouseLeave={(e) => {
-				if (!isActive) {
-					e.currentTarget.style.borderColor = 'var(--border)'
-					e.currentTarget.style.background = 'var(--surface2)'
-				}
-			}}
+			className={styles.slot}
+			data-side={side}
+			data-active={isActive || undefined}
+			title={side === 'weapon' ? slot.item : undefined}
+			aria-label={side === 'weapon' ? slot.item : undefined}
+			aria-pressed={isActive}
+			style={{ '--rarity': RARITY_COLORS[slot.rarity] } as CSSProperties}
+			onClick={() => onSelect(slot.id)}
 		>
-			{side === 'left' && Icon}
-			<div style={{ flex: 1, minWidth: 0 }}>
-				<div
-					style={{
-						fontSize: 11,
-						fontWeight: 600,
-						color: rc,
-						whiteSpace: 'nowrap',
-						overflow: 'hidden',
-						textOverflow: 'ellipsis',
-						fontFamily: 'Rajdhani',
-						letterSpacing: '0.3px',
-					}}
-				>
-					{slot.item}
-				</div>
-				<div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-					<span style={{ fontSize: 10, color: 'var(--text-dim)', fontWeight: 500 }}>iLvl {slot.ilvl}</span>
-					{slot.enchant && (
-						<span
-							style={{
-								fontSize: 9,
-								color: 'var(--blue)',
-								opacity: 0.7,
-								whiteSpace: 'nowrap',
-								overflow: 'hidden',
-								textOverflow: 'ellipsis',
-							}}
-						>
-							✦ {slot.enchant}
-						</span>
-					)}
-				</div>
-			</div>
-			{side === 'right' && Icon}
+			{content}
 		</button>
 	)
 }

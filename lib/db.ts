@@ -27,6 +27,5 @@ export async function connectDB(): Promise<typeof mongoose> {
 }
 
 export { CharacterModel } from '@/lib/models/Character'
-export { ItemCacheModel, makeItemExpiry } from '@/lib/models/ItemCache'
 export { makeExpiry, SearchCacheModel } from '@/lib/models/SearchCache'
 export { UserModel } from '@/lib/models/User'

@@ -6,6 +6,78 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 
 ---
 
+## [0.3.0] — 2026-11-16
+
+### Ajouté
+
+#### Refonte de l'interface d'après maquettes
+- Nouveau système visuel : palette or / parchemin sombre, polices **Cinzel** (titres) et **Figtree** (texte), tokens dans `app/globals.css`
+- Header commun : logo, navigation Personnages / Compte / Planning, recherche `Nom-Royaume` (raccourci `/`), avatar
+- Fiche personnage `/personnage/[realm]/[name]` : colonne d'identité (niveau, guilde, score d'équipement, statistiques, dernière connexion), emplacements autour du rendu en pied, barre de sélection avec lien « Détails → » vers le panneau d'item
+- Page **Métiers du compte** `/metiers` : synthèse par métier et tableau par personnage, données réelles
+- Page de connexion en deux colonnes : bouton Afficher / Masquer, « Se souvenir de moi »
+- Nouvelle page **Tableau hebdomadaire** `/planning` (protégée) : semaine et compte à rebours du reset réels, le reste en données de démonstration (`app/planning/mock-data.ts`)
+- Accueil « Personnages » : recherche + liste des personnages du compte une fois connecté
+- Blocs sans donnée réelle affichés en « Bientôt disponible » (onglets Talents, Hauts faits, Collection, Craftables, Cooldowns)
+- Mises en page étroites jusqu'à 360 px sur toutes les pages
+
+#### Mot de passe oublié sans email
+- Code de récupération `XXXX-XXXX-XXXX-XXXX` affiché une seule fois à l'inscription, stocké haché
+- `POST /api/auth/reset` : email + code → nouveau mot de passe, nouvelle session et nouveau code
+- `POST /api/profile/recovery-code` : (re)génération depuis `/profil` avec le mot de passe
+- Composant `components/ui/RecoveryCode` partagé entre `/auth` et `/profil`
+
+#### Données Battle.net
+- Fiche publique : niveau, rendu en pied, dernière connexion et statistiques (principale, Endurance, Hâte, Critique, Maîtrise, Polyvalence)
+- `GET /api/professions` : métiers principaux des personnages du compte, cache 1h sur le document `Character`
+- `lib/services/realm.ts` : résolution du royaume saisi (slug, nom affiché, accents, cyrillique) via l'index des royaumes Blizzard, cache mémoire 24h
+- `lib/characterPath.ts` : construction unique des liens vers une fiche et de l'URL d'API
+- `lib/services/character.ts` : mapping personnage + équipement partagé par les routes
+- Cache négatif : un personnage introuvable est mémorisé 5 min
+
+#### Tests
+- Suite `node:test` dans `tests/` (134 tests, sans base ni réseau) et script `npm test`
+
+### Modifié
+
+- **Tailwind supprimé** : styles inline migrés vers des CSS Modules par composant
+- Polices hébergées avec le site via `next/font` (plus d'appel à Google à l'exécution)
+- `GET /api/characters/public/:realm/:name` : 404 uniquement si Blizzard répond 404, 502 en cas d'erreur Battle.net, 503 sans token ; les appels optionnels (rendu, équipement, statistiques, icônes) dégradent au lieu de faire échouer la page
+- `lib/services/bnetToken.ts` : appels avec statut, timeout de 8 s, relance unique sur token rejeté, logs serveur `bnet <statut> <chemin>`
+- `POST /api/characters/:id/enrich` : token client credentials, statuts 404 / 502 / 503, n'écrit rien en cas d'échec
+- Métiers : en cas d'échec Blizzard, les métiers déjà connus restent affichés
+- Session : logique JWT partagée dans `lib/session.ts` ; `AZERO_SESSION_SECRET` obligatoire en production
+- Routes d'authentification : message générique pour les erreurs imprévues, 400 sur un corps invalide
+- `PUT /api/profile/favorites` : validation des entrées
+- Couleurs de classe : une seule table (palette officielle, par id de classe) dans `lib/constants.ts`
+- Liaison Battle.net : le token utilisateur n'est plus stocké
+- `ItemCache` : un item n'est mis en cache que si Blizzard a répondu
+- Profil : état d'erreur avec « Réessayer », favoris mis à jour seulement après enregistrement réussi, carte de personnage accessible au clavier
+- Dépendances mises à jour (Next 16.4, React 19.3, TypeScript 7, Biome 2.6, Mongoose 9.12) ; `tsconfig.json` et `biome.json` adaptés
+
+### Corrigé
+
+- Recherche d'un personnage au nom ou au royaume accentué : double encodage de l'URL d'API → 404
+- Royaumes saisis avec accents, apostrophes, espaces ou parenthèses (« Arak-arahm », « Aggra (Português) », « Kael'thas »)
+- Erreurs Battle.net affichées comme « Personnage introuvable »
+- Enrichissement avec un token expiré : écrasement des données du personnage par des valeurs vides
+- `itemId` perdu à l'enregistrement des personnages (champ absent du schéma)
+- Regex construite depuis l'identifiant de personnage sans échappement
+- Balisage Blizzard (`|A:…|a`) affiché dans les enchantements
+- Animations cassées par le renommage des `@keyframes` dans les CSS Modules
+
+### Supprimé
+
+- `tailwindcss`, `tailwind.config.ts`
+- `zustand` et `store/character-store.ts`
+- Composants `CharacterBar`, `CharacterDropdown`, `ObtainableItem`, `StatChip`, `RarityDot`, `SegmentTabs` ; dropdown Personnages du header
+- Routes `GET /api/characters/[id]` et `GET /api/items/slot/[slot]`
+- `SETUP.md`, documents de conception NeDB (`docs/superpowers/…-bnet-profile-nedb*`), entrée `data/` du `.gitignore`
+
+Sujets mis de côté : voir `FEATURES.md`.
+
+---
+
 ## [0.2.0] — 2026-05-20
 
 ### Ajouté

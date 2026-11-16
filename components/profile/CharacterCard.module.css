@@ -1,0 +1,170 @@
+.card {
+	background: var(--surface2);
+	border: 1px solid var(--border);
+	border-radius: 3px;
+	padding: 12px 14px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	position: relative;
+	transition: border-color 0.15s;
+}
+
+.card[data-fav="main"] {
+	border-color: var(--gold-dim);
+}
+
+.card:hover {
+	border-color: var(--border-strong);
+}
+
+.card[data-fav="main"]:hover {
+	border-color: var(--gold);
+}
+
+.stars {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	display: flex;
+	gap: 2px;
+	z-index: 1;
+}
+
+.star {
+	width: 22px;
+	height: 22px;
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 0;
+	font-size: 14px;
+	line-height: 1;
+	color: var(--text-muted);
+}
+
+.star:hover,
+.star:focus-visible {
+	color: var(--gold-light);
+}
+
+.star[data-on] {
+	color: var(--gold);
+}
+
+.row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.head {
+	padding-right: 48px;
+}
+
+.name {
+	font: 600 15px var(--font-display);
+	color: var(--class-color);
+	text-decoration: none;
+}
+
+/* The name link covers the whole card; stars and refresh sit above it */
+.name::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+}
+
+.name:focus-visible {
+	outline: none;
+}
+
+.name:focus-visible::after {
+	outline: 2px solid var(--gold-light);
+	outline-offset: 2px;
+	border-radius: 3px;
+}
+
+.faction {
+	font: 600 10px var(--font-display);
+	letter-spacing: 0.12em;
+}
+
+.faction[data-faction="horde"] {
+	color: var(--red);
+}
+
+.faction[data-faction="alliance"] {
+	color: var(--rarity-rare);
+}
+
+.desc {
+	font-size: 12.5px;
+	color: var(--text-dim);
+}
+
+.realmRow {
+	margin-top: 2px;
+}
+
+.realm,
+.guild {
+	font-size: 12px;
+	color: var(--text-muted);
+}
+
+.chips {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.chip {
+	font-size: 11px;
+	padding: 2px 8px;
+	border: 1px solid var(--border);
+	border-radius: 2px;
+	color: var(--text-dim);
+}
+
+.chip[data-kind="ilvl"] {
+	color: var(--gold-light);
+	border-color: var(--gold-dim);
+}
+
+.footer {
+	margin-top: 6px;
+}
+
+.updated {
+	font-size: 11px;
+	color: var(--text-muted);
+}
+
+.refresh {
+	position: relative;
+	z-index: 1;
+	font-size: 12px;
+	padding: 2px 8px;
+	background: none;
+	border: 1px solid var(--border-strong);
+	border-radius: 2px;
+	color: var(--text-dim);
+	cursor: pointer;
+}
+
+.refresh:hover:not(:disabled),
+.refresh:focus-visible {
+	color: var(--text);
+	border-color: var(--gold-dim);
+}
+
+.refresh:disabled {
+	color: var(--text-muted);
+	cursor: default;
+}
+
+.error {
+	font-size: 11.5px;
+	color: var(--red);
+}

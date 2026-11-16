@@ -1,218 +1,107 @@
 'use client'
-import { useEffect, useState } from 'react'
-import { RARITY_COLORS } from '@/lib/constants'
-import type { ItemDetails, SelectedItem } from '@/lib/types'
+import { type CSSProperties, useEffect, useState } from 'react'
+import { RARITY_COLORS, RARITY_LABELS } from '@/lib/constants'
+import type { EquippedItem, ItemDetails } from '@/lib/types'
+import styles from './ItemDetailPanel.module.css'
 import SourceCard from './SourceCard'
 
 interface Props {
-	item: SelectedItem
+	item: EquippedItem
 	onClose: () => void
 }
 
+// Mount with `key={item.id}`: state starts fresh for every item
 export default function ItemDetailPanel({ item, onClose }: Props) {
 	const [data, setData] = useState<ItemDetails | null>(null)
-	const [loading, setLoading] = useState(false)
-	const rc = RARITY_COLORS[item.rarity] || '#9d9d9d'
+	const [loading, setLoading] = useState(Boolean(item.itemId))
+	const [failed, setFailed] = useState(false)
 
 	useEffect(() => {
-		// Requires item ID — skip if not available (legacy data without itemId)
-		if (!item.itemId) {
-			setLoading(false)
-			return
-		}
+		if (!item.itemId) return
 		let cancelled = false
-		setLoading(true)
-		setData(null)
 		fetch(`/api/items/${item.itemId}/sources`)
-			.then((r) => (r.ok ? r.json() : null))
+			.then((r) => {
+				if (!r.ok) throw new Error()
+				return r.json()
+			})
 			.then((json) => {
 				if (cancelled) return
-				if (json?.sources) {
-					setData({ type: json.type, slot: json.slot, stats: json.stats, sources: json.sources })
-				}
+				if (json?.sources) setData(json as ItemDetails)
 			})
-			.finally(() => {
-				if (!cancelled) setLoading(false)
-			})
+			.catch(() => !cancelled && setFailed(true))
+			.finally(() => !cancelled && setLoading(false))
 		return () => {
 			cancelled = true
 		}
 	}, [item.itemId])
 
+	useEffect(() => {
+		const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+		document.addEventListener('keydown', onKey)
+		return () => document.removeEventListener('keydown', onKey)
+	}, [onClose])
+
 	return (
-		<div
-			style={{
-				position: 'fixed',
-				top: 0,
-				right: 0,
-				bottom: 0,
-				width: 320,
-				background: 'var(--surface)',
-				borderLeft: '1px solid var(--border2)',
-				display: 'flex',
-				flexDirection: 'column',
-				zIndex: 200,
-				animation: 'slideInR 0.22s ease',
-				boxShadow: '-8px 0 32px rgba(0,0,0,0.4)',
-			}}
+		<aside
+			className={styles.panel}
+			aria-label="Détails de l'objet"
+			style={{ '--rarity': RARITY_COLORS[item.rarity] } as CSSProperties}
 		>
-			<div style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-				<div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-					<div style={{ flex: 1, minWidth: 0 }}>
-						<div
-							style={{
-								fontSize: 13,
-								fontWeight: 700,
-								color: rc,
-								fontFamily: 'Rajdhani',
-								letterSpacing: '0.5px',
-								lineHeight: 1.3,
-								textTransform: 'uppercase',
-							}}
-						>
-							{item.name}
+			<div className={styles.header}>
+				<div className={styles.titleRow}>
+					<div className={styles.titleBox}>
+						<h2 className={styles.title}>{item.item}</h2>
+						<div className={styles.slot}>
+							{item.label}
+							{data ? ` · ${data.type}` : ''}
 						</div>
-						{item.slot && (
-							<div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 3 }}>
-								{item.slot}
-								{data ? ` · ${data.type}` : ''}
-							</div>
-						)}
 					</div>
-					<button
-						type='button'
-						onClick={onClose}
-						style={{
-							background: 'none',
-							border: 'none',
-							color: 'var(--text-muted)',
-							cursor: 'pointer',
-							fontSize: 16,
-							lineHeight: 1,
-							padding: '2px 4px',
-							flexShrink: 0,
-							borderRadius: 3,
-							transition: 'color 0.15s',
-						}}
-						onMouseEnter={(e) => {
-							e.currentTarget.style.color = 'var(--text)'
-						}}
-						onMouseLeave={(e) => {
-							e.currentTarget.style.color = 'var(--text-muted)'
-						}}
-						aria-label='Fermer'
-					>
-						✕
+					<button type='button' className={styles.close} onClick={onClose} aria-label='Fermer'>
+						<span aria-hidden='true'>✕</span>
 					</button>
 				</div>
 
-				<div style={{ display: 'flex', gap: 6, marginTop: 10, alignItems: 'center' }}>
-					<span
-						style={{
-							padding: '3px 8px',
-							borderRadius: 3,
-							fontSize: 11,
-							fontWeight: 700,
-							fontFamily: 'Rajdhani',
-							background: `${rc}18`,
-							color: rc,
-							border: `1px solid ${rc}33`,
-						}}
-					>
-						iLvl {item.ilvl}
-					</span>
-					<span
-						style={{
-							padding: '3px 8px',
-							borderRadius: 3,
-							fontSize: 10,
-							background: 'var(--surface2)',
-							color: 'var(--text-dim)',
-							border: '1px solid var(--border)',
-						}}
-					>
-						{item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1)}
-					</span>
-					{item.enchant && (
-						<span
-							style={{
-								fontSize: 10,
-								color: 'var(--blue)',
-								display: 'flex',
-								alignItems: 'center',
-								gap: 3,
-							}}
-						>
-							✦ {item.enchant}
-						</span>
-					)}
+				<div className={styles.chips}>
+					<span className={styles.ilvl}>iLvl {item.ilvl}</span>
+					<span className={styles.rarity}>{RARITY_LABELS[item.rarity]}</span>
+					{item.enchant && <span className={styles.enchant}>✦ {item.enchant}</span>}
 				</div>
 			</div>
 
-			{data?.stats && data.stats[0] !== '–' && (
-				<div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-					<div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '1px', marginBottom: 8 }}>
-						STATISTIQUES
-					</div>
-					<div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-						{data.stats.map((s, _i) => (
-							<div
-								key={Math.floor(Math.random() * (9999999 - 1000000 + 1)) + 1000000}
-								style={{
-									fontSize: 11,
-									color: 'var(--text-dim)',
-									display: 'flex',
-									alignItems: 'center',
-									gap: 6,
-								}}
-							>
-								<span
-									style={{
-										width: 3,
-										height: 3,
-										borderRadius: '50%',
-										background: 'var(--border2)',
-										flexShrink: 0,
-									}}
-								/>
+			{data?.stats?.length ? (
+				<div className={styles.stats}>
+					<div className={styles.label}>STATISTIQUES</div>
+					<div className={styles.statList}>
+						{data.stats.map((s) => (
+							<div key={s} className={styles.stat}>
 								{s}
 							</div>
 						))}
 					</div>
 				</div>
-			)}
+			) : null}
 
-			<div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
-				<div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '1px', marginBottom: 10 }}>
-					SOURCES D&apos;OBTENTION
-				</div>
+			<div className={styles.sources}>
+				<div className={styles.label}>SOURCES D&apos;OBTENTION</div>
 				{loading ? (
-					<div style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>
-						Chargement…
-					</div>
-				) : data ? (
-					<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+					<div className={styles.empty}>Chargement…</div>
+				) : failed ? (
+					<div className={styles.empty}>Impossible de charger les sources.</div>
+				) : data?.sources.length ? (
+					<div className={styles.sourceList}>
 						{data.sources.map((s, i) => (
-							<SourceCard
-								key={Math.floor(Math.random() * (9999999 - 1000000 + 1)) + 1000000}
-								source={s}
-								index={i}
-							/>
+							<SourceCard key={`${s.instance}-${s.boss}-${s.difficulty}`} source={s} index={i} />
 						))}
 					</div>
 				) : (
-					<div style={{ padding: '20px 0', textAlign: 'center' }}>
-						<div style={{ fontSize: 22, marginBottom: 8, opacity: 0.3 }}>🔍</div>
-						<div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Aucune source disponible</div>
+					<div className={styles.empty}>
+						<div className={styles.emptyIcon} aria-hidden='true'>
+							🔍
+						</div>
+						Aucune source disponible
 					</div>
 				)}
 			</div>
-
-			<div style={{ padding: '10px 16px', borderTop: '1px solid var(--border)', flexShrink: 0 }}>
-				<div style={{ fontSize: 10, color: 'var(--text-muted)', textAlign: 'center' }}>
-					Cliquez sur un autre item pour comparer
-				</div>
-			</div>
-		</div>
+		</aside>
 	)
 }

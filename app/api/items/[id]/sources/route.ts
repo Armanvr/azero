@@ -7,7 +7,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 	const { id } = await params
 	const itemId = Number(id)
 
-	if (!itemId || Number.isNaN(itemId)) {
+	if (!/^[1-9]\d*$/.test(id) || !Number.isSafeInteger(itemId)) {
 		return NextResponse.json({ error: 'ID invalide' }, { status: 400 })
 	}
 

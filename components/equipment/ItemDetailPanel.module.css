@@ -1,0 +1,170 @@
+.panel {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	width: 340px;
+	max-width: 100vw;
+	background: var(--surface);
+	border-left: 1px solid var(--border);
+	display: flex;
+	flex-direction: column;
+	z-index: 200;
+	animation: slideInR 0.22s ease;
+	box-shadow: -8px 0 32px rgba(0, 0, 0, 0.4);
+}
+
+.header {
+	padding: 18px 20px 14px;
+	border-bottom: 1px solid var(--border);
+	flex-shrink: 0;
+}
+
+.titleRow {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.titleBox {
+	flex: 1;
+	min-width: 0;
+}
+
+.title {
+	margin: 0;
+	font-family: var(--font-display);
+	font-size: 15px;
+	font-weight: 600;
+	color: var(--rarity);
+	line-height: 1.3;
+}
+
+.slot {
+	font-size: 12px;
+	color: var(--text-dim);
+	margin-top: 3px;
+}
+
+.close {
+	background: none;
+	border: none;
+	color: var(--text-muted);
+	cursor: pointer;
+	font-size: 16px;
+	line-height: 1;
+	padding: 2px 4px;
+	flex-shrink: 0;
+	border-radius: 3px;
+}
+
+.close:hover,
+.close:focus-visible {
+	color: var(--text);
+}
+
+.chips {
+	display: flex;
+	gap: 6px;
+	margin-top: 12px;
+	align-items: center;
+}
+
+.ilvl,
+.rarity {
+	padding: 3px 8px;
+	border-radius: 3px;
+	font-size: 11.5px;
+	border: 1px solid var(--border);
+}
+
+.ilvl {
+	font-family: var(--font-display);
+	font-weight: 600;
+	color: var(--rarity);
+	border-color: color-mix(in srgb, var(--rarity) 44%, transparent);
+}
+
+.rarity {
+	color: var(--text-dim);
+}
+
+.enchant {
+	font-size: 12px;
+	color: var(--green);
+}
+
+.stats {
+	padding: 14px 20px;
+	border-bottom: 1px solid var(--border);
+	flex-shrink: 0;
+}
+
+.label {
+	font-family: var(--font-display);
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--text-muted);
+	letter-spacing: 0.16em;
+	margin-bottom: 10px;
+}
+
+.statList {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.stat {
+	font-size: 12.5px;
+	color: var(--text-dim);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.stat::before {
+	content: "";
+	width: 4px;
+	height: 4px;
+	transform: rotate(45deg);
+	background: var(--gold-dim);
+	flex-shrink: 0;
+}
+
+.sources {
+	flex: 1;
+	overflow-y: auto;
+	padding: 14px 20px;
+}
+
+.sourceList {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.empty {
+	padding: 20px 0;
+	text-align: center;
+	font-size: 12.5px;
+	color: var(--text-muted);
+}
+
+.emptyIcon {
+	font-size: 22px;
+	margin-bottom: 8px;
+	opacity: 0.3;
+}
+
+@keyframes slideInR {
+	from {
+		opacity: 0;
+		transform: translateX(24px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}

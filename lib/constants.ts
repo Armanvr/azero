@@ -1,23 +1,31 @@
 import type { Difficulty, ItemRarity, WowClass } from './types'
 
-export const RARITY_COLORS: Record<ItemRarity, string> = {
-	common: '#9d9d9d',
-	uncommon: '#1eff00',
-	rare: '#0070dd',
-	epic: '#a335ee',
-	legendary: '#ff8000',
-	purple: '#a335ee',
+export const RARITY_LABELS: Record<ItemRarity, string> = {
+	legendary: 'Légendaire',
+	epic: 'Épique',
+	rare: 'Rare',
+	uncommon: 'Inhabituel',
+	common: 'Commun',
 }
 
-export const DIFF_COLORS: Record<Difficulty, { bg: string; text: string; border: string }> = {
-	LFR: { bg: 'rgba(74,222,128,0.12)', text: '#4ade80', border: 'rgba(74,222,128,0.25)' },
-	Normal: { bg: 'rgba(56,189,248,0.12)', text: '#38bdf8', border: 'rgba(56,189,248,0.25)' },
-	Heroïque: { bg: 'rgba(168,85,247,0.12)', text: '#a855f7', border: 'rgba(168,85,247,0.25)' },
-	Mythique: { bg: 'rgba(240,180,41,0.12)', text: '#f0b429', border: 'rgba(240,180,41,0.25)' },
-	'M+': { bg: 'rgba(240,180,41,0.12)', text: '#f0b429', border: 'rgba(240,180,41,0.25)' },
-	Craft: { bg: 'rgba(248,113,113,0.12)', text: '#f87171', border: 'rgba(248,113,113,0.25)' },
-	Quête: { bg: 'rgba(156,163,175,0.12)', text: '#9ca3af', border: 'rgba(156,163,175,0.25)' },
-	Réputation: { bg: 'rgba(156,163,175,0.12)', text: '#9ca3af', border: 'rgba(156,163,175,0.25)' },
+// Token references: the stylesheets own the actual colours
+export const RARITY_COLORS: Record<ItemRarity, string> = {
+	legendary: 'var(--rarity-legendary)',
+	epic: 'var(--rarity-epic)',
+	rare: 'var(--rarity-rare)',
+	uncommon: 'var(--green)',
+	common: 'var(--text-dim)',
+}
+
+export const DIFF_COLORS: Record<Difficulty, string> = {
+	LFR: '#4ade80',
+	Normal: '#38bdf8',
+	Heroïque: '#a855f7',
+	Mythique: '#f0b429',
+	'M+': '#f0b429',
+	Craft: '#f87171',
+	Quête: '#9ca3af',
+	Réputation: '#9ca3af',
 }
 
 export const CLASS_ID_TO_NAME: Record<number, WowClass> = {
@@ -36,18 +44,19 @@ export const CLASS_ID_TO_NAME: Record<number, WowClass> = {
 	13: 'Evocateur',
 }
 
-export const CLASS_COLORS: Record<WowClass, string> = {
-	Paladin: '#f0b429',
-	Mage: '#38bdf8',
-	Chasseur: '#4ade80',
-	Guerrier: '#c79c6e',
-	Prêtre: '#ffffff',
-	Démoniste: '#9482c9',
-	Chaman: '#0070de',
-	Druide: '#ff7c0a',
-	Voleur: '#fff468',
-	Moine: '#00ff98',
-	'Chasseur de démons': '#a330c9',
-	'Chevalier de la mort': '#c41e3a',
-	Evocateur: '#33937f',
+// By Blizzard class id, official palette
+export const CLASS_COLORS: Record<number, string> = {
+	1: '#C69B6D',
+	2: '#F48CBA',
+	3: '#AAD372',
+	4: '#FFF468',
+	5: '#FFFFFF',
+	6: '#C41E3A',
+	7: '#0070DD',
+	8: '#3FC7EB',
+	9: '#8788EE',
+	10: '#00FF98',
+	11: '#FF7C0A',
+	12: '#A330C9',
+	13: '#33937F',
 }
