@@ -48,11 +48,34 @@ export interface CharacterStats {
 	secondary: { label: string; pct: number }[] // Hâte, Critique, Maîtrise, Polyvalence (percent)
 }
 
-export interface Profession {
+// ─── Professions (contract of /api/professions/*) ───────────────────────────
+
+export interface RecipeRef {
+	id: number
 	name: string
-	tier: number // Blizzard tier id: higher = more recent expansion
+}
+
+/** One expansion of a profession, as learned by a character. */
+export interface ProfessionTier {
+	id: number // Blizzard skill tier id
+	name: string // fr_FR, from the static catalog ("Forge de Midnight")
+	expansion: string // display label ("Midnight"); the tier name when the expansion is not recognised
+	expansionOrder: number // chronological, higher = more recent; -1 when not recognised
 	skill: number
 	max: number
+	knownRecipes: RecipeRef[] // always [] when the profession has no recipe system
+}
+
+export interface CharacterProfession {
+	id: number // Blizzard profession id
+	name: string // fr_FR, from the static catalog; Blizzard's profile name as a fallback
+	kind: 'primary' | 'secondary'
+	icon?: string
+	hasRecipes: boolean // false for Pêche and Archéologie
+	tiers: ProfessionTier[] // most recent expansion first; [] for Archéologie
+	// Only for a profession Blizzard reports without tiers (Archéologie)
+	skill?: number
+	max?: number
 }
 
 export interface ProfessionCharacter {
@@ -62,7 +85,29 @@ export interface ProfessionCharacter {
 	class: WowClass
 	spec: string
 	level: number
-	professions: Profession[] // primary professions only, at most 2
+	// False when Blizzard never answered for this character: recipe status is then unknown, never "missing"
+	professionsKnown: boolean
+	professions: CharacterProfession[] // primaries first, then secondaries
+}
+
+/** GET /api/professions/[professionId]/tiers/[tierId]: the Blizzard recipe catalog of one expansion. */
+export interface TierCatalog {
+	id: number
+	name: string
+	categories: Array<{ name: string; recipes: RecipeRef[] }>
+}
+
+/** GET /api/professions/recipes/[id]: every optional field is absent when Blizzard does not provide it. */
+export interface RecipeDetail {
+	id: number
+	name: string
+	icon?: string
+	description?: string
+	rank?: number
+	craftedItems?: Array<RecipeRef & { faction?: 'alliance' | 'horde' }>
+	craftedQuantity?: { value?: number; min?: number; max?: number }
+	reagents?: Array<RecipeRef & { quantity: number }>
+	optionalSlots?: string[] // names of the modified crafting slots
 }
 
 export interface Character {
@@ -132,6 +177,7 @@ export interface BnetCharacter {
 	slotsWeapon?: EquippedItem[]
 	enrichedAt?: string
 	// Cached by GET /api/professions for one hour
-	professions?: Profession[]
-	professionsFetchedAt?: number // ms timestamp
+	// (new field names: documents cached before the profession manager hold another shape under `professions`)
+	professionData?: CharacterProfession[]
+	professionDataFetchedAt?: number // ms timestamp
 }
