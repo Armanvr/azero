@@ -1,0 +1,196 @@
+.header {
+	height: 56px;
+	display: flex;
+	align-items: center;
+	gap: 36px;
+	padding: 0 32px;
+	border-bottom: 1px solid var(--border-header);
+}
+
+.logo {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	color: var(--text);
+}
+
+.diamond {
+	width: 9px;
+	height: 9px;
+	transform: rotate(45deg);
+	border: 1px solid var(--gold);
+}
+
+.logoText {
+	font: 600 14px var(--font-display);
+	letter-spacing: 0.22em;
+}
+
+.nav {
+	display: flex;
+	height: 100%;
+}
+
+.navLink {
+	display: flex;
+	align-items: center;
+	padding: 0 16px;
+	font-size: 13.5px;
+	color: var(--text-dim);
+}
+
+.navLink:hover,
+.navLink[aria-current="page"] {
+	color: var(--text);
+}
+
+.navLink[aria-current="page"] {
+	box-shadow: inset 0 -1px 0 var(--gold);
+}
+
+.spacer {
+	flex: 1;
+}
+
+.search {
+	position: relative;
+	width: 260px;
+	height: 34px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 0 12px;
+	border: 1px solid var(--border);
+	border-radius: 3px;
+	color: var(--text-muted);
+}
+
+.search:focus-within {
+	border-color: var(--gold-dim);
+	outline: 2px solid var(--gold-light);
+	outline-offset: 2px;
+}
+
+.searchInput {
+	flex: 1;
+	min-width: 0;
+	height: 100%;
+	padding: 0;
+	border: none;
+	background: none;
+	outline: none;
+	color: var(--text);
+	font-size: 12.5px;
+}
+
+.kbd {
+	margin-left: auto;
+	font: inherit;
+	font-size: 11px;
+	border: 1px solid var(--border);
+	padding: 0 5px;
+	border-radius: 2px;
+}
+
+.hint {
+	position: absolute;
+	top: calc(100% + 4px);
+	left: 0;
+	z-index: 1;
+	padding: 4px 8px;
+	border: 1px solid var(--border);
+	border-radius: 3px;
+	background: var(--surface);
+	font-size: 12px;
+	white-space: nowrap;
+	color: var(--red);
+}
+
+.hint:empty {
+	display: none;
+}
+
+.bell {
+	color: var(--text-dim);
+}
+
+.avatar {
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	border: 1px solid var(--gold-dark);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font: 600 12px var(--font-display);
+	color: var(--gold);
+}
+
+.avatar:hover {
+	color: var(--text);
+}
+
+.avatarPlaceholder {
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	border: 1px solid var(--border);
+}
+
+.login {
+	font-size: 13.5px;
+}
+
+/* the single row needs ~980px: below, the search drops onto its own row */
+@media (max-width: 1000px) {
+	.header {
+		height: auto;
+		min-height: 56px;
+		flex-wrap: wrap;
+		gap: 8px 12px;
+	}
+
+	.nav {
+		height: 56px;
+		min-width: 0;
+	}
+
+	.search {
+		order: 1;
+		flex: 1 0 100%;
+		flex-wrap: wrap;
+		width: auto;
+		height: auto;
+		min-height: 34px;
+		margin-bottom: 12px;
+		gap: 0 10px;
+	}
+
+	.searchInput {
+		height: 32px;
+	}
+
+	.hint {
+		position: static;
+		flex: 0 0 100%;
+		padding: 0 0 6px;
+		border: none;
+		background: none;
+		white-space: normal;
+	}
+}
+
+@media (max-width: 760px) {
+	.header {
+		padding: 0 12px;
+	}
+
+	.logoText,
+	.bell {
+		display: none;
+	}
+
+	.navLink {
+		padding: 0 8px;
+	}
+}

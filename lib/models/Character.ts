@@ -6,6 +6,7 @@ const equippedItemSchema = new Schema(
 		id: String,
 		label: String,
 		item: String,
+		itemId: Number,
 		ilvl: Number,
 		enchant: Schema.Types.Mixed,
 		rarity: String,
@@ -13,6 +14,8 @@ const equippedItemSchema = new Schema(
 	},
 	{ _id: false },
 )
+
+const professionSchema = new Schema({ name: String, tier: Number, skill: Number, max: Number }, { _id: false })
 
 const characterSchema = new Schema<BnetCharacter>(
 	{
@@ -28,7 +31,6 @@ const characterSchema = new Schema<BnetCharacter>(
 		faction: String,
 		fetchedAt: String,
 		avatarUrl: String,
-		mainRawUrl: String,
 		ilvl: Number,
 		spec: String,
 		specId: Number,
@@ -39,6 +41,8 @@ const characterSchema = new Schema<BnetCharacter>(
 		slotsRight: [equippedItemSchema],
 		slotsWeapon: [equippedItemSchema],
 		enrichedAt: String,
+		professions: [professionSchema],
+		professionsFetchedAt: Number,
 	},
 	{ versionKey: false },
 )

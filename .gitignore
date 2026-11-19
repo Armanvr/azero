@@ -5,6 +5,7 @@ node_modules/
 .next/
 out/
 build/
+AGENTS.md
 
 # Environment variables
 .env
@@ -26,6 +27,3 @@ next-env.d.ts
 # Project-specific
 design/
 docs/
-
-# NeDB data files
-data/

@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose'
-import type { Difficulty, ItemSource } from '@/lib/types'
+import type { ItemSource } from '@/lib/types'
 
 const CACHE_TTL_SECONDS = 7 * 24 * 3600 // 7 days — item data rarely changes mid-patch
 
@@ -63,12 +63,4 @@ export const BNET_STAT_LABELS: Record<string, string> = {
 	AVOIDANCE: 'Esquive',
 	LEECH: 'Absorption vitale',
 	SPEED: 'Vitesse de déplacement',
-}
-
-// Blizzard difficulty type → Difficulty label
-export const BNET_DIFF_LABELS: Record<string, Difficulty> = {
-	LFR: 'LFR',
-	NORMAL: 'Normal',
-	HEROIC: 'Heroïque',
-	MYTHIC: 'Mythique',
 }

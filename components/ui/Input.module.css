@@ -1,0 +1,39 @@
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.label {
+	font-size: 12.5px;
+	color: var(--text-dim);
+}
+
+.wrap {
+	position: relative;
+}
+
+.input {
+	width: 100%;
+	height: 44px;
+	padding: 0 14px;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 3px;
+	color: var(--text);
+	font-size: 14px;
+}
+
+.input[data-action] {
+	padding-right: 72px;
+}
+
+.input:focus-visible {
+	border-color: var(--gold-dim);
+}
+
+.action {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+}

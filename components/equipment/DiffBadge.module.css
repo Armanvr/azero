@@ -1,0 +1,12 @@
+.badge {
+	padding: 2px 7px;
+	border-radius: 3px;
+	font-family: var(--font-display);
+	font-size: 10px;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	background: color-mix(in srgb, var(--diff) 12%, transparent);
+	color: var(--diff);
+	border: 1px solid color-mix(in srgb, var(--diff) 25%, transparent);
+	white-space: nowrap;
+}

@@ -2,11 +2,9 @@ import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 import { readSession } from '@/lib/auth'
 import { CharacterModel, connectDB, UserModel } from '@/lib/db'
-import type { BnetCharacter } from '@/lib/types'
 
 interface BnetTokenResponse {
 	access_token: string
-	expires_in: number
 }
 
 interface BnetRealm {
@@ -76,7 +74,7 @@ export async function GET(req: NextRequest) {
 		return NextResponse.redirect(new URL('/profil?error=token_failed', req.url))
 	}
 
-	const { access_token, expires_in } = (await tokenRes.json()) as BnetTokenResponse
+	const { access_token } = (await tokenRes.json()) as BnetTokenResponse
 
 	const charsRes = await fetch('https://eu.api.blizzard.com/profile/user/wow?namespace=profile-eu&locale=fr_FR', {
 		headers: { Authorization: `Bearer ${access_token}` },
@@ -90,15 +88,12 @@ export async function GET(req: NextRequest) {
 
 	await connectDB()
 
+	// The user's token is only used above, never stored. `$unset` cleans one stored by an earlier version:
+	// the field left the schema, so Mongoose would drop that `$unset` unless strict is off.
 	await UserModel.updateOne(
 		{ id: session.userId },
-		{
-			$set: {
-				bnetAccessToken: access_token,
-				bnetTokenExpiry: Date.now() + expires_in * 1000,
-				bnetConnected: true,
-			},
-		},
+		{ $set: { bnetConnected: true }, $unset: { bnetAccessToken: '' } },
+		{ strict: false },
 	)
 
 	await CharacterModel.deleteMany({ userId: session.userId })

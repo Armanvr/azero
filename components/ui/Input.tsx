@@ -1,47 +1,32 @@
-'use client'
-import { forwardRef, type InputHTMLAttributes } from 'react'
+import type { InputHTMLAttributes, ReactNode } from 'react'
+import { useId } from 'react'
+import styles from './Input.module.css'
 
 interface Props extends InputHTMLAttributes<HTMLInputElement> {
 	label?: string
+	// control shown at the right edge inside the field (e.g. show/hide password)
+	action?: ReactNode
 }
 
-const Input = forwardRef<HTMLInputElement, Props>(function Input({ label, ...rest }, ref) {
+export default function Input({ label, action, className, ...rest }: Props) {
+	const autoId = useId()
+	const id = rest.id ?? autoId
 	return (
-		<div>
+		<div className={styles.field}>
 			{label && (
-				<label
-					style={{
-						fontSize: 11,
-						color: 'var(--text-dim)',
-						letterSpacing: '0.5px',
-						marginBottom: 5,
-						display: 'block',
-					}}
-					htmlFor={rest.id}
-				>
+				<label className={styles.label} htmlFor={id}>
 					{label}
 				</label>
 			)}
-			<input
-				ref={ref}
-				{...rest}
-				style={{
-					width: '100%',
-					padding: '10px 12px',
-					background: 'var(--surface2)',
-					border: '1px solid var(--border2)',
-					borderRadius: 4,
-					color: 'var(--text)',
-					fontSize: 13,
-					fontFamily: "'Exo 2', sans-serif",
-					outline: 'none',
-					transition: 'border-color 0.15s',
-				}}
-				onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--gold)')}
-				onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--border2)')}
-			/>
+			<div className={styles.wrap}>
+				<input
+					{...rest}
+					id={id}
+					className={className ? `${styles.input} ${className}` : styles.input}
+					data-action={action ? '' : undefined}
+				/>
+				{action && <div className={styles.action}>{action}</div>}
+			</div>
 		</div>
 	)
-})
-
-export default Input
+}

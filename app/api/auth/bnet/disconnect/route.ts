@@ -8,9 +8,11 @@ export async function POST() {
 
 	await connectDB()
 
+	// strict: false because bnetAccessToken is no longer in the schema (cleans tokens stored by an earlier version)
 	await UserModel.updateOne(
 		{ id: session.userId },
-		{ $set: { bnetConnected: false }, $unset: { bnetAccessToken: '', bnetTokenExpiry: '' } },
+		{ $set: { bnetConnected: false }, $unset: { bnetAccessToken: '' } },
+		{ strict: false },
 	)
 
 	await CharacterModel.deleteMany({ userId: session.userId })

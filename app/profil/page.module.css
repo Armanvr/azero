@@ -1,0 +1,246 @@
+.loading {
+	min-height: calc(100dvh - 56px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--text-muted);
+}
+
+.state {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 14px;
+	text-align: center;
+}
+
+.state p {
+	margin: 0;
+}
+
+.retry {
+	height: 36px;
+	padding: 0 18px;
+	background: none;
+	border: 1px solid var(--gold-dark);
+	border-radius: 3px;
+	color: var(--gold-light);
+	font: 600 12px var(--font-display);
+	letter-spacing: 0.14em;
+	cursor: pointer;
+}
+
+.retry:hover {
+	border-color: var(--gold);
+	color: var(--text);
+}
+
+.content {
+	max-width: 1280px;
+	margin: 0 auto;
+	padding: 28px 40px;
+}
+
+.card {
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 3px;
+	padding: 18px 20px;
+	margin-bottom: 20px;
+}
+
+.user {
+	composes: card;
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
+.avatar {
+	width: 48px;
+	height: 48px;
+	border-radius: 50%;
+	border: 1px solid var(--gold-dark);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font: 600 18px var(--font-display);
+	color: var(--gold);
+	flex-shrink: 0;
+}
+
+.username {
+	font: 600 20px var(--font-display);
+	color: var(--text);
+}
+
+.email {
+	font-size: 13px;
+	color: var(--text-dim);
+	margin-top: 2px;
+}
+
+.since {
+	font-size: 12px;
+	color: var(--text-muted);
+	margin-top: 2px;
+}
+
+/* section title: diamond + Cinzel */
+.label {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 0 0 14px;
+	font: 600 12px var(--font-display);
+	letter-spacing: 0.16em;
+	color: var(--gold);
+}
+
+.label::before {
+	content: "";
+	width: 5px;
+	height: 5px;
+	transform: rotate(45deg);
+	background: var(--gold);
+}
+
+.bnetRow {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+.compact {
+	height: 38px;
+	font-size: 11px;
+	white-space: nowrap;
+}
+
+/* Destructive action: outlined, not the primary gold button */
+.bnetRow .secondary {
+	background: none;
+	border: 1px solid var(--gold-dark);
+	box-shadow: none;
+	color: var(--gold-light);
+}
+
+.connected {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 14px;
+	color: var(--text);
+}
+
+.connected::before {
+	content: "●";
+	color: var(--green);
+	font-size: 14px;
+}
+
+.hint {
+	font-size: 13px;
+	color: var(--text-dim);
+}
+
+.empty {
+	font-size: 13px;
+	color: var(--text-muted);
+}
+
+.groups {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+}
+
+.legend {
+	font-size: 12px;
+	color: var(--text-muted);
+}
+
+.groupTitle {
+	font: 600 12px var(--font-display);
+	color: var(--text-muted);
+	letter-spacing: 0.16em;
+	margin-bottom: 10px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.groupTitle[data-kind="main"] {
+	color: var(--gold);
+}
+
+.groupTitle[data-kind="sub"] {
+	color: var(--gold-dim);
+}
+
+.box {
+	border: 1px solid;
+	border-radius: 3px;
+	padding: 12px;
+	background: var(--surface);
+}
+
+.box[data-kind="main"] {
+	border-color: var(--gold-dim);
+}
+
+.box[data-kind="sub"] {
+	border-color: var(--border-strong);
+}
+
+.cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+	gap: 12px;
+}
+
+.recoveryText {
+	margin: 0 0 14px;
+	font-size: 13px;
+	color: var(--text-dim);
+	line-height: 1.6;
+}
+
+.recoveryForm {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	max-width: 380px;
+}
+
+.error {
+	font-size: 13px;
+	color: var(--red);
+	margin-top: 10px;
+}
+
+.error + .groups {
+	margin-top: 24px;
+}
+
+.codeBox {
+	margin-top: 14px;
+}
+
+.codeHint {
+	font-size: 12px;
+	color: var(--text-muted);
+	margin-top: 8px;
+}
+
+@media (max-width: 760px) {
+	.content {
+		padding: 20px 16px;
+	}
+
+	.bnetRow {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+}

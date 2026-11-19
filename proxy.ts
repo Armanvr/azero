@@ -1,27 +1,11 @@
-import { jwtVerify } from 'jose'
 import { type NextRequest, NextResponse } from 'next/server'
-
-const SESSION_COOKIE = 'azero_session'
+import { SESSION_COOKIE, verifySession } from '@/lib/session'
 
 // Routes requiring authentication
-const PROTECTED_ROUTES = ['/metiers', '/profil']
-
-function getSecret(): Uint8Array {
-	const raw = process.env.AZERO_SESSION_SECRET || 'dev-only-fallback-secret-change-me-please-32'
-	return new TextEncoder().encode(raw)
-}
+const PROTECTED_ROUTES = ['/metiers', '/planning', '/profil']
 
 export async function proxy(req: NextRequest) {
-	const token = req.cookies.get(SESSION_COOKIE)?.value
-	let valid = false
-	if (token) {
-		try {
-			await jwtVerify(token, getSecret())
-			valid = true
-		} catch {
-			valid = false
-		}
-	}
+	const valid = (await verifySession(req.cookies.get(SESSION_COOKIE)?.value)) !== null
 
 	const { pathname } = req.nextUrl
 	const isAuthPage = pathname === '/auth'
