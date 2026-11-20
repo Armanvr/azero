@@ -15,8 +15,6 @@ const equippedItemSchema = new Schema(
 	{ _id: false },
 )
 
-const professionSchema = new Schema({ name: String, tier: Number, skill: Number, max: Number }, { _id: false })
-
 const characterSchema = new Schema<BnetCharacter>(
 	{
 		userId: { type: String, required: true, index: true },
@@ -41,8 +39,9 @@ const characterSchema = new Schema<BnetCharacter>(
 		slotsRight: [equippedItemSchema],
 		slotsWeapon: [equippedItemSchema],
 		enrichedAt: String,
-		professions: [professionSchema],
-		professionsFetchedAt: Number,
+		// Mixed: the CharacterProfession[] tree is only ever written and read whole by /api/professions
+		professionData: Schema.Types.Mixed,
+		professionDataFetchedAt: Number,
 	},
 	{ versionKey: false },
 )

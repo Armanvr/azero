@@ -1,81 +1,100 @@
 'use client'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import type { CSSProperties } from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import Header from '@/components/layout/Header'
+import { ProfIcon, ProgressBar } from '@/components/professions/ProfessionBits'
+import Input from '@/components/ui/Input'
 import { characterPath } from '@/lib/characterPath'
-import type { Profession, ProfessionCharacter } from '@/lib/types'
+import { detailPath, normalize, pickTier, searchRecipes, skillOf } from '@/lib/professions'
+import type { CharacterProfession, ProfessionCharacter } from '@/lib/types'
+import { useProfessionCharacters } from '@/lib/useProfessionCharacters'
 import styles from './page.module.css'
 
-const isFull = (p: Profession) => p.max > 0 && p.skill >= p.max
-const pct = (p: Profession) =>
-	({ '--pct': `${p.max > 0 ? Math.min(100, (p.skill / p.max) * 100) : 0}%` }) as CSSProperties
 const plural = (n: number, word: string) => `${n} ${word}${n > 1 ? 's' : ''}`
+const MAX_RESULTS = 100 // shortcut: no pagination, narrow the query instead; upgrade to "show more" if needed
 
-function Bar({ p }: { p: Profession }) {
+function ProfCard({ char, p, expansion }: { char: ProfessionCharacter; p: CharacterProfession; expansion: string }) {
+	const tier = pickTier(p, expansion)
+	const sk = skillOf(p, tier)
 	return (
-		<div className={styles.track}>
-			<div className={`${styles.fill} ${isFull(p) ? styles.full : ''}`} style={pct(p)} />
-		</div>
+		<Link className={styles.prof} href={detailPath(char.id, p.id, tier?.id)}>
+			<div className={styles.profHead}>
+				<ProfIcon src={p.icon} name={p.name} />
+				<span className={styles.profText}>
+					<span className={styles.profName}>{p.name}</span>
+					{tier && <span className={styles.profSub}>{tier.expansion}</span>}
+				</span>
+				{sk && (
+					<span className={styles.profSkill}>
+						{sk.skill} / {sk.max}
+					</span>
+				)}
+			</div>
+			{sk && <ProgressBar skill={sk.skill} max={sk.max} />}
+		</Link>
 	)
 }
 
-function ProfCell({ p }: { p?: Profession }) {
-	if (!p) return <span className={styles.none}>—</span>
+function ProfColumn({
+	title,
+	char,
+	profs,
+	expansion,
+}: {
+	title: string
+	char: ProfessionCharacter
+	profs: CharacterProfession[]
+	expansion: string
+}) {
 	return (
-		<div className={styles.prof}>
-			<div className={styles.profHead}>
-				<span className={styles.profName}>{p.name}</span>
-				<span className={styles.profSkill}>
-					{p.skill} / {p.max}
-				</span>
-			</div>
-			<Bar p={p} />
+		<div className={styles.col}>
+			<h3 className={styles.colTitle}>{title}</h3>
+			{profs.length === 0 ? (
+				<span className={styles.none}>—</span>
+			) : (
+				<ul className={styles.list}>
+					{profs.map((p) => (
+						<li key={p.id}>
+							<ProfCard char={char} p={p} expansion={expansion} />
+						</li>
+					))}
+				</ul>
+			)}
 		</div>
 	)
 }
 
 export default function MetiersPage() {
-	const router = useRouter()
-	const [characters, setCharacters] = useState<ProfessionCharacter[] | null>(null)
-	const [error, setError] = useState(false)
+	const { characters, error, load } = useProfessionCharacters()
+	const [charFilter, setCharFilter] = useState('')
+	const [profFilter, setProfFilter] = useState('')
+	const [expansion, setExpansion] = useState('')
+	const [query, setQuery] = useState('')
 
-	const load = useCallback(async () => {
-		setError(false)
-		setCharacters(null)
-		try {
-			const res = await fetch('/api/professions')
-			if (res.status === 401) return router.replace('/auth')
-			if (!res.ok) throw new Error()
-			setCharacters((await res.json()).characters)
-		} catch {
-			setError(true)
-		}
-	}, [router])
-
-	useEffect(() => {
-		load()
-	}, [load])
-
-	// Per distinct profession: the most recent expansion tier, then the best skill within it
-	const summary = new Map<string, Profession>()
+	const profNames = [...new Set((characters ?? []).flatMap((c) => c.professions.map((p) => p.name)))].sort()
+	const expansions = new Map<string, number>()
 	for (const c of characters ?? [])
-		for (const p of c.professions) {
-			const best = summary.get(p.name)
-			if (
-				!best ||
-				(p.tier ?? 0) > (best.tier ?? 0) ||
-				((p.tier ?? 0) === (best.tier ?? 0) && p.skill > best.skill)
-			)
-				summary.set(p.name, p)
-		}
-	const summaryList = [...summary.values()]
+		for (const p of c.professions) for (const t of p.tiers) expansions.set(t.expansion, t.expansionOrder)
+	const expansionList = [...expansions].sort((a, b) => b[1] - a[1]).map(([name]) => name)
+
+	const visible = (characters ?? [])
+		.filter((c) => !charFilter || c.id === charFilter)
+		.map((c) => ({
+			char: c,
+			profs: c.professions.filter(
+				(p) => (!profFilter || p.name === profFilter) && (!expansion || pickTier(p, expansion)),
+			),
+		}))
+		// Without a profession filter every character stays, so one Blizzard did not answer for shows its warning
+		.filter((v) => v.profs.length > 0 || (!profFilter && !expansion))
+
+	const results = characters ? searchRecipes(characters, query) : []
+	const searching = normalize(query).length >= 2 // same threshold as searchRecipes
 
 	let body: React.ReactNode
 	if (error) {
 		body = (
-			<div className={styles.state}>
+			<div className={styles.state} aria-live='polite'>
 				<p>Impossible de charger les métiers.</p>
 				<button type='button' className={styles.retry} onClick={load}>
 					Réessayer
@@ -83,54 +102,63 @@ export default function MetiersPage() {
 			</div>
 		)
 	} else if (!characters) {
-		body = <div className={styles.state}>Chargement…</div>
+		body = (
+			<div className={styles.state} aria-live='polite'>
+				Chargement…
+			</div>
+		)
 	} else if (characters.length === 0) {
 		body = (
-			<div className={styles.state}>
+			<div className={styles.state} aria-live='polite'>
 				<p>Aucun personnage : liez un compte Battle.net pour afficher vos métiers.</p>
 				<Link href='/profil'>Lier mon compte Battle.net</Link>
 			</div>
 		)
+	} else if (searching) {
+		body =
+			results.length === 0 ? (
+				<div className={styles.state} aria-live='polite'>
+					Aucune recette apprise ne correspond à « {query.trim()} ».
+				</div>
+			) : (
+				<ul className={styles.results} aria-label='Résultats de recherche'>
+					{results.slice(0, MAX_RESULTS).map(({ recipe, hits }) => (
+						<li key={recipe.id} className={styles.result}>
+							<span className={styles.resultName}>{recipe.name}</span>
+							<ul className={styles.hits}>
+								{hits.map((h) => (
+									<li key={`${h.char.id}-${h.profession.id}-${h.tier.id}`}>
+										<Link href={detailPath(h.char.id, h.profession.id, h.tier.id, recipe.id)}>
+											{h.char.name} · {h.profession.name} · {h.tier.expansion}
+										</Link>
+									</li>
+								))}
+							</ul>
+						</li>
+					))}
+				</ul>
+			)
+	} else if (visible.length === 0) {
+		body = (
+			<div className={styles.state} aria-live='polite'>
+				Aucun métier ne correspond aux filtres.
+			</div>
+		)
 	} else {
 		body = (
-			<>
-				{summaryList.length > 0 && (
-					<div
-						className={styles.summary}
-						style={{ '--cols': Math.min(6, summaryList.length) } as CSSProperties}
-					>
-						{summaryList.map((p) => (
-							<div key={p.name} className={styles.cell}>
-								<span className={styles.cellName}>{p.name}</span>
-								<span className={`${styles.cellValue} ${isFull(p) ? styles.gold : ''}`}>{p.skill}</span>
-								<Bar p={p} />
+			<div className={styles.chars}>
+				{visible.map(({ char: c, profs }) => (
+					<section key={c.id} className={styles.char} aria-label={c.name}>
+						<div className={styles.who}>
+							<div className={styles.avatar} aria-hidden='true'>
+								{c.name[0]}
 							</div>
-						))}
-					</div>
-				)}
-
-				<div>
-					<div className={`${styles.row} ${styles.head}`}>
-						<span>PERSONNAGE</span>
-						<span>NIV.</span>
-						<span>MÉTIER PRINCIPAL</span>
-						<span>MÉTIER SECONDAIRE</span>
-						<span />
-					</div>
-					{characters.map((c) => (
-						<div key={c.id} className={`${styles.row} ${styles.body}`}>
-							<div className={styles.who}>
-								<div className={styles.avatar}>{c.name[0]}</div>
-								<div className={styles.whoText}>
-									<span className={styles.charName}>{c.name}</span>
-									<span className={styles.charClass}>
-										{c.class} · {c.spec}
-									</span>
-								</div>
+							<div className={styles.whoText}>
+								<span className={styles.charName}>{c.name}</span>
+								<span className={styles.charClass}>
+									{c.class} · {c.spec} · niv. {c.level}
+								</span>
 							</div>
-							<span className={styles.level}>{c.level}</span>
-							<ProfCell p={c.professions[0]} />
-							<ProfCell p={c.professions[1]} />
 							<Link
 								className={styles.more}
 								href={characterPath(c.name, c.realmSlug)}
@@ -139,20 +167,28 @@ export default function MetiersPage() {
 								···
 							</Link>
 						</div>
-					))}
-				</div>
-
-				<div className={styles.bottom}>
-					<section className={styles.card}>
-						<h2 className={styles.cardTitle}>COOLDOWNS DE MÉTIERS</h2>
-						<p className={styles.soon}>Bientôt disponible</p>
+						{!c.professionsKnown && (
+							<p className={styles.warn}>
+								Blizzard n’a pas répondu pour ce personnage : recettes indisponibles.
+							</p>
+						)}
+						<div className={styles.cols}>
+							<ProfColumn
+								title='PRINCIPAUX'
+								char={c}
+								profs={profs.filter((p) => p.kind === 'primary')}
+								expansion={expansion}
+							/>
+							<ProfColumn
+								title='SECONDAIRES'
+								char={c}
+								profs={profs.filter((p) => p.kind === 'secondary')}
+								expansion={expansion}
+							/>
+						</div>
 					</section>
-					<section className={styles.card}>
-						<h2 className={styles.cardTitle}>CRAFTABLES DISPONIBLES</h2>
-						<p className={styles.soon}>Bientôt disponible</p>
-					</section>
-				</div>
-			</>
+				))}
+			</div>
 		)
 	}
 
@@ -160,25 +196,67 @@ export default function MetiersPage() {
 		<div className={styles.page}>
 			<Header active='compte' />
 			<main className={styles.main}>
-				<div className={styles.titleRow}>
-					<div className={styles.titles}>
-						<h1 className={styles.h1}>Métiers du compte</h1>
-						{characters && (
-							<span className={styles.sub}>
-								{plural(characters.length, 'personnage')} · {plural(summaryList.length, 'métier')}
-							</span>
-						)}
-					</div>
-					<div className={styles.tabs}>
-						<span className={`${styles.tab} ${styles.tabActive}`}>MÉTIERS</span>
-						<span className={styles.tab} aria-disabled='true' title='Bientôt disponible'>
-							CRAFTABLES
-						</span>
-						<span className={styles.tab} aria-disabled='true' title='Bientôt disponible'>
-							COOLDOWNS
-						</span>
-					</div>
+				<div className={styles.titles}>
+					<h1 className={styles.h1}>Métiers du compte</h1>
+					{characters && <span className={styles.sub}>{plural(characters.length, 'personnage')}</span>}
 				</div>
+
+				{characters && characters.length > 0 && (
+					<div className={styles.filters}>
+						<Input
+							label='Rechercher une recette apprise'
+							type='search'
+							value={query}
+							onChange={(e) => setQuery(e.target.value)}
+							placeholder='Ex. : élixir, flèche…'
+						/>
+						<label className={styles.select}>
+							<span>Personnage</span>
+							<select
+								value={charFilter}
+								onChange={(e) => setCharFilter(e.target.value)}
+								disabled={searching}
+							>
+								<option value=''>Tous</option>
+								{characters.map((c) => (
+									<option key={c.id} value={c.id}>
+										{c.name}
+									</option>
+								))}
+							</select>
+						</label>
+						<label className={styles.select}>
+							<span>Métier</span>
+							<select
+								value={profFilter}
+								onChange={(e) => setProfFilter(e.target.value)}
+								disabled={searching}
+							>
+								<option value=''>Tous</option>
+								{profNames.map((n) => (
+									<option key={n} value={n}>
+										{n}
+									</option>
+								))}
+							</select>
+						</label>
+						<label className={styles.select}>
+							<span>Extension</span>
+							<select
+								value={expansion}
+								onChange={(e) => setExpansion(e.target.value)}
+								disabled={searching}
+							>
+								<option value=''>La plus récente</option>
+								{expansionList.map((n) => (
+									<option key={n} value={n}>
+										{n}
+									</option>
+								))}
+							</select>
+						</label>
+					</div>
+				)}
 				{body}
 			</main>
 		</div>

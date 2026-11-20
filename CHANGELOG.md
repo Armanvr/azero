@@ -6,6 +6,39 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 
 ---
 
+## [0.4.0] — 2026-11-20
+
+### Ajouté
+
+#### Gestionnaire de métiers
+- `/metiers` : métiers principaux et secondaires (Cuisine, Pêche, Archéologie) de chaque personnage, en colonnes distinctes, avec icône, extension, niveau et barre ; filtres par personnage, métier et extension
+- Recherche globale d'une recette parmi les recettes connues de tous les personnages (Cuisine incluse), insensible à la casse et aux accents, avec lien direct vers la fiche
+- Nouvelle page `/metiers/[charId]/[professionId]` : niveau par extension, recettes apprises / manquantes par rapport au catalogue Blizzard, barre de pourcentage, catalogue par catégorie, filtres Toutes / Apprises / Manquantes, recherche, tri par nom ou statut
+- Fiche recette : statut (Apprise, Non apprise, Inconnu), objets fabriqués, composants et quantités, description ; un champ absent est indiqué « Non fourni par Blizzard »
+- Pêche : progression par extension uniquement ; Archéologie : niveau global uniquement (Blizzard ne fournit ni découvertes ni projets) ; le Secourisme n'est jamais affiché
+
+#### Données Battle.net
+- `GET /api/professions/[professionId]/tiers/[tierId]` : catalogue de recettes d'une extension
+- `GET /api/professions/recipes/[id]` : détail d'une recette, limité aux champs fournis par Blizzard
+- `GET /api/professions/recipes/[id]/icon` : redirection vers l'icône, pour le chargement paresseux des listes
+- `lib/services/professionService.ts` et collection `BnetCache` : données statiques Blizzard en cache 7 jours, un échec n'est jamais mis en cache
+- `lib/professions.ts` : recherche, statut et statistiques de recettes, sans dépendance à React
+
+#### Tests
+- 176 tests (42 de plus) : routes métiers, catalogue, recette, icône et logique de recettes
+
+### Modifié
+
+- `GET /api/professions` : renvoie pour chaque personnage `professionsKnown` et l'arbre complet des métiers (extensions, recettes connues), avec les noms français du catalogue ; cache déplacé vers `professionData` / `professionDataFetchedAt`
+- Extension déduite du nom du palier (« Forge de Midnight » → Midnight), Blizzard ne fournissant pas ce champ
+- Métiers : un personnage pour lequel Blizzard n'a jamais répondu reste affiché avec un avertissement, et aucune de ses recettes n'est comptée comme manquante
+
+### Supprimé
+
+- `/metiers` : bandeau de synthèse par métier et blocs « Bientôt disponible » (Craftables, Cooldowns)
+
+---
+
 ## [0.3.0] — 2026-11-16
 
 ### Ajouté

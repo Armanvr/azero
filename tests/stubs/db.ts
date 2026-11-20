@@ -94,3 +94,22 @@ export const SearchCacheModel = {
 		return doc
 	},
 }
+
+// --- Blizzard static data cache (lib/models/BnetCache.ts, routed here by hooks.mjs) ---
+export const bnetCache: Doc[] = []
+export const makeBnetExpiry = () => new Date(Date.now() + 7 * 24 * 3600_000)
+export const BnetCacheModel = {
+	findOne: (filter: { key: string; expiresAt: { $gt: Date } }) => ({
+		lean: async () => {
+			const d = bnetCache.find((x) => x.key === filter.key && (x.expiresAt as Date) > filter.expiresAt.$gt)
+			return d ? structuredClone(d) : null
+		},
+	}),
+	updateOne: async (filter: { key: string }, update: { $set: Doc }) => {
+		const doc = { ...filter, ...structuredClone(update.$set) }
+		const i = bnetCache.findIndex((x) => x.key === filter.key)
+		if (i === -1) bnetCache.push(doc)
+		else bnetCache[i] = doc
+		return { matchedCount: i === -1 ? 0 : 1 }
+	},
+}

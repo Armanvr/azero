@@ -17,6 +17,7 @@ export async function resolve(specifier, context, nextResolve) {
 	const file = [base, `${base}.ts`, `${base}/index.ts`].find((p) => existsSync(p) && /\.ts$/.test(p))
 	if (!file) return nextResolve(specifier, context)
 	const url = pathToFileURL(file).href
-	if (url.endsWith('/lib/db.ts')) return { url: stub('db.ts'), shortCircuit: true }
+	if (url.endsWith('/lib/db.ts') || url.endsWith('/lib/models/BnetCache.ts'))
+		return { url: stub('db.ts'), shortCircuit: true }
 	return { url, shortCircuit: true }
 }
