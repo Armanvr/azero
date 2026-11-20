@@ -7,12 +7,16 @@ import CharAvatar from '@/components/character/CharAvatar'
 import ItemDetailPanel from '@/components/equipment/ItemDetailPanel'
 import ItemSlot from '@/components/equipment/ItemSlot'
 import Header from '@/components/layout/Header'
+import TalentsTab from '@/components/talents/TalentsTab'
 import { apiPathFromParams } from '@/lib/characterPath'
 import { RARITY_COLORS, RARITY_LABELS } from '@/lib/constants'
 import type { Character } from '@/lib/types'
 import styles from './page.module.css'
 
-const TABS = ['TALENTS', 'HAUTS FAITS', 'COLLECTION']
+const TABS = [
+	['gear', 'ÉQUIPEMENT'],
+	['talents', 'TALENTS'],
+] as const
 
 const dayStart = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
 
@@ -78,14 +82,15 @@ export default function CharacterPage() {
 					</div>
 				</div>
 			) : (
-				<CharacterView character={character} />
+				<CharacterView character={character} realm={realm} name={name} />
 			)}
 		</div>
 	)
 }
 
 // Mounted only while a character is loaded: selection state resets with every new fetch
-function CharacterView({ character }: { character: Character }) {
+function CharacterView({ character, realm, name }: { character: Character; realm: string; name: string }) {
+	const [tab, setTab] = useState<'gear' | 'talents'>('gear')
 	const [selectedId, setSelectedId] = useState<string | null>(null)
 	const [detailOpen, setDetailOpen] = useState(false)
 	const [renderFailed, setRenderFailed] = useState(false)
@@ -112,12 +117,35 @@ function CharacterView({ character }: { character: Character }) {
 					<Link href='/' className={styles.back}>
 						← Personnages
 					</Link>
-					<div className={styles.tabs}>
-						<span className={`${styles.tab} ${styles.tabActive}`}>ÉQUIPEMENT</span>
-						{TABS.map((t) => (
-							<span key={t} className={styles.tab} aria-disabled='true' title='Bientôt disponible'>
-								{t}
-							</span>
+					<div className={styles.tabs} role='tablist'>
+						{TABS.map(([id, label], i) => (
+							<button
+								key={id}
+								type='button'
+								role='tab'
+								id={`tab-${id}`}
+								aria-selected={tab === id}
+								aria-controls='tabpanel'
+								tabIndex={tab === id ? 0 : -1}
+								className={`${styles.tab} ${tab === id ? styles.tabActive : ''}`}
+								onClick={() => setTab(id)}
+								onKeyDown={(e) => {
+									const moves: Record<string, number> = {
+										ArrowRight: i + 1,
+										ArrowLeft: i - 1,
+										Home: 0,
+										End: TABS.length - 1,
+									}
+									const to = moves[e.key]
+									if (to === undefined) return
+									e.preventDefault()
+									const next = TABS[(to + TABS.length) % TABS.length][0]
+									setTab(next)
+									document.getElementById(`tab-${next}`)?.focus()
+								}}
+							>
+								{label}
+							</button>
 						))}
 					</div>
 				</div>
@@ -179,62 +207,75 @@ function CharacterView({ character }: { character: Character }) {
 						)}
 					</aside>
 
-					<div className={styles.right}>
-						<div className={styles.gear}>
-							<div className={styles.slots}>{character.slotsLeft.map((s) => renderSlot(s, 'left'))}</div>
-							<div className={styles.figure}>
-								{character.renderUrl && !renderFailed ? (
-									<Image
-										src={character.renderUrl}
-										alt={character.name}
-										fill
-										loading='eager'
-										fetchPriority='high'
-										sizes='(max-width: 1100px) 100vw, 400px'
-										className={styles.render}
-										onError={() => setRenderFailed(true)}
-									/>
-								) : (
-									<CharAvatar character={character} />
+					<div className={styles.right} role='tabpanel' id='tabpanel' aria-labelledby={`tab-${tab}`}>
+						{tab === 'talents' ? (
+							<TalentsTab realm={realm} name={name} />
+						) : (
+							<>
+								<div className={styles.gear}>
+									<div className={styles.slots}>
+										{character.slotsLeft.map((s) => renderSlot(s, 'left'))}
+									</div>
+									<div className={styles.figure}>
+										{character.renderUrl && !renderFailed ? (
+											<Image
+												src={character.renderUrl}
+												alt={character.name}
+												fill
+												loading='eager'
+												fetchPriority='high'
+												sizes='(max-width: 1100px) 100vw, 700px'
+												className={styles.render}
+												onError={() => setRenderFailed(true)}
+											/>
+										) : (
+											<CharAvatar character={character} />
+										)}
+									</div>
+									<div className={styles.slots}>
+										{character.slotsRight.map((s) => renderSlot(s, 'right'))}
+									</div>
+								</div>
+
+								{character.slotsWeapon.length > 0 && (
+									<div className={styles.weapons}>
+										{character.slotsWeapon.map((s) => renderSlot(s, 'weapon'))}
+									</div>
 								)}
-							</div>
-							<div className={styles.slots}>
-								{character.slotsRight.map((s) => renderSlot(s, 'right'))}
-							</div>
-						</div>
 
-						{character.slotsWeapon.length > 0 && (
-							<div className={styles.weapons}>
-								{character.slotsWeapon.map((s) => renderSlot(s, 'weapon'))}
-							</div>
-						)}
-
-						{selected && (
-							<div
-								className={styles.selection}
-								style={{ '--rarity': RARITY_COLORS[selected.rarity] } as CSSProperties}
-							>
-								<span className={styles.selDiamond} />
-								<span className={styles.selName}>{selected.item}</span>
-								<span className={styles.selMeta}>
-									{selected.label} · {RARITY_LABELS[selected.rarity]} · Niveau d'objet {selected.ilvl}
-								</span>
-								{selected.enchant && <span className={styles.selEnchant}>{selected.enchant}</span>}
-								<button
-									type='button'
-									ref={detailsBtn}
-									className={styles.details}
-									onClick={() => setDetailOpen(true)}
-								>
-									Détails →
-								</button>
-							</div>
+								{selected && (
+									<div
+										className={styles.selection}
+										style={{ '--rarity': RARITY_COLORS[selected.rarity] } as CSSProperties}
+									>
+										<span className={styles.selDiamond} />
+										<span className={styles.selName}>{selected.item}</span>
+										<span className={styles.selMeta}>
+											{selected.label} · {RARITY_LABELS[selected.rarity]} · Niveau d'objet{' '}
+											{selected.ilvl}
+										</span>
+										{selected.enchant && (
+											<span className={styles.selEnchant}>{selected.enchant}</span>
+										)}
+										<button
+											type='button'
+											ref={detailsBtn}
+											className={styles.details}
+											onClick={() => setDetailOpen(true)}
+										>
+											Détails →
+										</button>
+									</div>
+								)}
+							</>
 						)}
 					</div>
 				</div>
 			</main>
 
-			{detailOpen && selected && <ItemDetailPanel key={selected.id} item={selected} onClose={closeDetail} />}
+			{tab === 'gear' && detailOpen && selected && (
+				<ItemDetailPanel key={selected.id} item={selected} onClose={closeDetail} />
+			)}
 		</>
 	)
 }

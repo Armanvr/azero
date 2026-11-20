@@ -4,14 +4,6 @@ Liste des sujets mis de côté. Relevé du 2026-11-16, après la refonte d'aprè
 
 ## Panneau « Détails » d'un item
 
-### Sources d'obtention toujours vides
-
-Le panneau affiche « Aucune source disponible » pour tous les items essayés sur un vrai personnage (ids 250060, 268291, 263919, 249346, 250063). `GET /api/items/:id/sources` renvoie `"sources": []` à chaque fois.
-
-- Les sources viennent uniquement de `fetchWowheadSources` (`lib/services/itemService.ts`), qui renvoie `[]` en silence sur tout échec de requête ou d'analyse. On ne peut donc pas distinguer « WowHead bloque ou a changé de format » de « cet item n'a pas de source ».
-- À faire : journaliser le statut et l'échec d'analyse côté serveur, vérifier la réponse réelle de WowHead, puis corriger ou changer de source de données.
-- Défaut antérieur à la refonte.
-
 ### Statistiques d'item non mises à l'échelle
 
 Les statistiques affichées ressemblent aux valeurs de base de l'item, pas à celles de son niveau d'objet : une tête de niveau 276 affiche « 9 Intelligence, 14 Endurance ».

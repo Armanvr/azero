@@ -1,0 +1,436 @@
+{
+	"_links": {
+		"self": {
+			"href": "https://eu.api.blizzard.com/profile/wow/character/tarren-mill/testchar/specializations?namespace=profile-eu"
+		}
+	},
+	"specializations": [
+		{
+			"specialization": {
+				"key": {
+					"href": "https://eu.api.blizzard.com/data/wow/playable-specialization/102?namespace=static-12.1.5_70077-eu"
+				},
+				"name": "Équilibre",
+				"id": 102
+			},
+			"loadouts": [
+				{
+					"is_active": false,
+					"talent_loadout_code": "CYGADBD3hSPCL9Y9gz68WcKvMAAAAAAAAAAAAAAAAAWAziZMmZgHwsNmZmZBGmZZsMjZMDjlZMzMD2wAgx22M22mZbWmxMzyMAAAAsZmZmZwmhxYGAzMwMwA",
+					"selected_class_talents": [
+						{
+							"id": 99808,
+							"rank": 1
+						},
+						{
+							"id": 82201,
+							"rank": 1,
+							"tooltip": {
+								"talent": {
+									"key": {
+										"href": "https://eu.api.blizzard.com/data/wow/talent/108284?namespace=static-12.1.5_70077-eu"
+									},
+									"name": "Feu stellaire",
+									"id": 108284
+								},
+								"spell_tooltip": {
+									"spell": {
+										"key": {
+											"href": "https://eu.api.blizzard.com/data/wow/spell/194153?namespace=static-12.1.5_70077-eu"
+										},
+										"name": "Feu stellaire",
+										"id": 194153
+									},
+									"description": "Vous déclenchez une explosion d’énergie qui inflige 7215 points de dégâts des arcanes à la cible et 5026 aux autres adversaires à moins de 10 m. Dégâts réduits au-delà de 8 cibles.\r\n\r\nGénère 8 points de puissance astrale.",
+									"cast_time": "2,3 s d’incantation",
+									"range": "40 m de portée"
+								}
+							},
+							"default_points": 1
+						},
+						{
+							"id": 82225,
+							"rank": 1,
+							"tooltip": {
+								"talent": {
+									"key": {
+										"href": "https://eu.api.blizzard.com/data/wow/talent/108308?namespace=static-12.1.5_70077-eu"
+									},
+									"name": "Instinct du tueur",
+									"id": 108308
+								},
+								"spell_tooltip": {
+									"spell": {
+										"key": {
+											"href": "https://eu.api.blizzard.com/data/wow/spell/108299?namespace=static-12.1.5_70077-eu"
+										},
+										"name": "Instinct du tueur",
+										"id": 108299
+									},
+									"description": "Les dégâts physiques et l’Armure sont augmentés de 3%.",
+									"cast_time": "Passif"
+								}
+							}
+						},
+						{
+							"id": 82198,
+							"rank": 1,
+							"tooltip": {
+								"talent": {
+									"key": {
+										"href": "https://eu.api.blizzard.com/data/wow/talent/108281?namespace=static-12.1.5_70077-eu"
+									},
+									"name": "Charge sauvage",
+									"id": 108281
+								},
+								"spell_tooltip": {
+									"spell": {
+										"key": {
+											"href": "https://eu.api.blizzard.com/data/wow/spell/102401?namespace=static-12.1.5_70077-eu"
+										},
+										"name": "Charge sauvage",
+										"id": 102401
+									},
+									"description": "Vole vers l’emplacement d’un allié proche.",
+									"cast_time": "Instantané",
+									"range": "5-25 m de portée",
+									"cooldown": "15 s de recharge"
+								}
+							}
+						}
+					],
+					"selected_spec_talents": [
+						{
+							"id": 88223,
+							"rank": 1,
+							"tooltip": {
+								"talent": {
+									"key": {
+										"href": "https://eu.api.blizzard.com/data/wow/talent/114863?namespace=static-12.1.5_70077-eu"
+									},
+									"name": "Éclipse",
+									"id": 114863
+								},
+								"spell_tooltip": {
+									"spell": {
+										"key": {
+											"href": "https://eu.api.blizzard.com/data/wow/spell/1239669?namespace=static-12.1.5_70077-eu"
+										},
+										"name": "Éclipse",
+										"id": 1239669
+									},
+									"description": "Vous pouvez aligner le soleil et la lune pendant 15 s, ce qui renforcera vos sorts de nature ou des arcanes. Le type d’Éclipse déclenché dépendra de l’utilisation de Colère ou de Feu stellaire, et les deux types d’Éclipse partagent un même bouton et un temps de recharge de 29 s.\r\n\r\n Éclipse (solaire)\r\nLes sorts de nature infligent 15 % de dégâts supplémentaires et les dégâts de Colère augmentent de 40 %.\r\n\r\n Éclipse (lunaire)\r\nLes sorts des arcanes infligent 15 % de dégâts supplémentaires et les dégâts de Feu stellaire augmentent de 40 %.",
+									"cast_time": "Passif"
+								}
+							}
+						},
+						{
+							"id": 88225,
+							"rank": 1,
+							"tooltip": {
+								"talent": {
+									"key": {
+										"href": "https://eu.api.blizzard.com/data/wow/talent/114866?namespace=static-12.1.5_70077-eu"
+									},
+									"name": "Etoiles filantes",
+									"id": 114866
+								},
+								"spell_tooltip": {
+									"spell": {
+										"key": {
+											"href": "https://eu.api.blizzard.com/data/wow/spell/202342?namespace=static-12.1.5_70077-eu"
+										},
+										"name": "Etoiles filantes",
+										"id": 202342
+									},
+									"description": "Les dégâts sur la durée d’Éclat lunaire et d’Éclat solaire ont une chance de faire s’abattre une étoile filante qui inflige 4424 points de dégâts des Astres et génère 2 points de puissance astrale.",
+									"cast_time": "Passif"
+								}
+							}
+						}
+					],
+					"selected_hero_talents": [
+						{
+							"id": 94599,
+							"rank": 1,
+							"tooltip": {
+								"talent": {
+									"key": {
+										"href": "https://eu.api.blizzard.com/data/wow/talent/122206?namespace=static-12.1.5_70077-eu"
+									},
+									"name": "Tréants lunaires",
+									"id": 122206
+								},
+								"spell_tooltip": {
+									"spell": {
+										"key": {
+											"href": "https://eu.api.blizzard.com/data/wow/spell/428544?namespace=static-12.1.5_70077-eu"
+										},
+										"name": "Tréants lunaires",
+										"id": 428544
+									},
+									"description": "Vos tréants invoqués avec Force de la nature lancent Éclat lunaire sur les cibles proches toutes les 6 s environ.",
+									"cast_time": "Passif"
+								}
+							}
+						}
+					],
+					"selected_class_talent_tree": {
+						"key": {
+							"href": "https://eu.api.blizzard.com/data/wow/talent-tree/793?namespace=static-12.1.5_70077-eu"
+						},
+						"name": "Druide"
+					},
+					"selected_spec_talent_tree": {
+						"key": {
+							"href": "https://eu.api.blizzard.com/data/wow/talent-tree/793/playable-specialization/102?namespace=static-12.1.5_70077-eu"
+						},
+						"name": "Équilibre"
+					},
+					"selected_hero_talent_tree": {
+						"key": {
+							"href": "https://eu.api.blizzard.com/data/wow/talent-tree/793/hero-talent/23?namespace=static-12.1.5_70077-eu"
+						},
+						"name": "Gardien du Bosquet",
+						"id": 23
+					}
+				},
+				{
+					"is_active": true,
+					"talent_loadout_code": "CYGADBD3hSPCL9Y9gz68WcKvMAAAAAAAAAAAAAAAAAWoMLNjxMD8AmtxMzMLwwMLjlhZMzwsMjZmZwGGAM22mx22MbzyMNzsMTAAAA2MzMzMYzwYMDgZGYGYA",
+					"selected_class_talents": [
+						{
+							"id": 99808,
+							"rank": 1
+						},
+						{
+							"id": 82201,
+							"rank": 1,
+							"tooltip": {
+								"talent": {
+									"key": {
+										"href": "https://eu.api.blizzard.com/data/wow/talent/108284?namespace=static-12.1.5_70077-eu"
+									},
+									"name": "Feu stellaire",
+									"id": 108284
+								},
+								"spell_tooltip": {
+									"spell": {
+										"key": {
+											"href": "https://eu.api.blizzard.com/data/wow/spell/194153?namespace=static-12.1.5_70077-eu"
+										},
+										"name": "Feu stellaire",
+										"id": 194153
+									},
+									"description": "Vous déclenchez une explosion d’énergie qui inflige 6980 points de dégâts des arcanes à la cible et 4893 aux autres adversaires à moins de 10 m. Dégâts réduits au-delà de 8 cibles.\r\n\r\nGénère 8 points de puissance astrale.",
+									"cast_time": "2,3 s d’incantation",
+									"range": "40 m de portée"
+								}
+							},
+							"default_points": 1
+						},
+						{
+							"id": 82225,
+							"rank": 1,
+							"tooltip": {
+								"talent": {
+									"key": {
+										"href": "https://eu.api.blizzard.com/data/wow/talent/108308?namespace=static-12.1.5_70077-eu"
+									},
+									"name": "Instinct du tueur",
+									"id": 108308
+								},
+								"spell_tooltip": {
+									"spell": {
+										"key": {
+											"href": "https://eu.api.blizzard.com/data/wow/spell/108299?namespace=static-12.1.5_70077-eu"
+										},
+										"name": "Instinct du tueur",
+										"id": 108299
+									},
+									"description": "Les dégâts physiques et l’Armure sont augmentés de 3%.",
+									"cast_time": "Passif"
+								}
+							}
+						},
+						{
+							"id": 82198,
+							"rank": 1,
+							"tooltip": {
+								"talent": {
+									"key": {
+										"href": "https://eu.api.blizzard.com/data/wow/talent/108281?namespace=static-12.1.5_70077-eu"
+									},
+									"name": "Charge sauvage",
+									"id": 108281
+								},
+								"spell_tooltip": {
+									"spell": {
+										"key": {
+											"href": "https://eu.api.blizzard.com/data/wow/spell/102401?namespace=static-12.1.5_70077-eu"
+										},
+										"name": "Charge sauvage",
+										"id": 102401
+									},
+									"description": "Vole vers l’emplacement d’un allié proche.",
+									"cast_time": "Instantané",
+									"range": "5-25 m de portée",
+									"cooldown": "15 s de recharge"
+								}
+							}
+						}
+					],
+					"selected_spec_talents": [
+						{
+							"id": 88223,
+							"rank": 1,
+							"tooltip": {
+								"talent": {
+									"key": {
+										"href": "https://eu.api.blizzard.com/data/wow/talent/114863?namespace=static-12.1.5_70077-eu"
+									},
+									"name": "Éclipse",
+									"id": 114863
+								},
+								"spell_tooltip": {
+									"spell": {
+										"key": {
+											"href": "https://eu.api.blizzard.com/data/wow/spell/1239669?namespace=static-12.1.5_70077-eu"
+										},
+										"name": "Éclipse",
+										"id": 1239669
+									},
+									"description": "Vous pouvez aligner le soleil et la lune pendant 15 s, ce qui renforcera vos sorts de nature ou des arcanes. Le type d’Éclipse déclenché dépendra de l’utilisation de Colère ou de Feu stellaire, et les deux types d’Éclipse partagent un même bouton et un temps de recharge de 29 s.\r\n\r\n Éclipse (solaire)\r\nLes sorts de nature infligent 15 % de dégâts supplémentaires et les dégâts de Colère augmentent de 40 %.\r\n\r\n Éclipse (lunaire)\r\nLes sorts des arcanes infligent 15 % de dégâts supplémentaires et les dégâts de Feu stellaire augmentent de 40 %.",
+									"cast_time": "Passif"
+								}
+							}
+						},
+						{
+							"id": 88225,
+							"rank": 1,
+							"tooltip": {
+								"talent": {
+									"key": {
+										"href": "https://eu.api.blizzard.com/data/wow/talent/114866?namespace=static-12.1.5_70077-eu"
+									},
+									"name": "Etoiles filantes",
+									"id": 114866
+								},
+								"spell_tooltip": {
+									"spell": {
+										"key": {
+											"href": "https://eu.api.blizzard.com/data/wow/spell/202342?namespace=static-12.1.5_70077-eu"
+										},
+										"name": "Etoiles filantes",
+										"id": 202342
+									},
+									"description": "Les dégâts sur la durée d’Éclat lunaire et d’Éclat solaire ont une chance de faire s’abattre une étoile filante qui inflige 4403 points de dégâts des Astres et génère 2 points de puissance astrale.",
+									"cast_time": "Passif"
+								}
+							}
+						}
+					],
+					"selected_hero_talents": [
+						{
+							"id": 94600,
+							"rank": 1,
+							"tooltip": {
+								"talent": {
+									"key": {
+										"href": "https://eu.api.blizzard.com/data/wow/talent/122207?namespace=static-12.1.5_70077-eu"
+									},
+									"name": "Poussée onirique",
+									"id": 122207
+								},
+								"spell_tooltip": {
+									"spell": {
+										"key": {
+											"href": "https://eu.api.blizzard.com/data/wow/spell/433831?namespace=static-12.1.5_70077-eu"
+										},
+										"name": "Poussée onirique",
+										"id": 433831
+									},
+									"description": "Force de la nature confère 3 charges d’Explosion onirique, provoquant l’explosion de votre prochain sort Colère ou Feu stellaire sur la cible pour infliger 22343 points de dégâts de nature aux adversaires proches. Dégâts réduits au-delà de 5 cibles.",
+									"cast_time": "Passif"
+								}
+							},
+							"default_points": 1
+						},
+						{
+							"id": 94599,
+							"rank": 1,
+							"tooltip": {
+								"talent": {
+									"key": {
+										"href": "https://eu.api.blizzard.com/data/wow/talent/122206?namespace=static-12.1.5_70077-eu"
+									},
+									"name": "Tréants lunaires",
+									"id": 122206
+								},
+								"spell_tooltip": {
+									"spell": {
+										"key": {
+											"href": "https://eu.api.blizzard.com/data/wow/spell/428544?namespace=static-12.1.5_70077-eu"
+										},
+										"name": "Tréants lunaires",
+										"id": 428544
+									},
+									"description": "Vos tréants invoqués avec Force de la nature lancent Éclat lunaire sur les cibles proches toutes les 6 s environ.",
+									"cast_time": "Passif"
+								}
+							}
+						}
+					],
+					"selected_class_talent_tree": {
+						"key": {
+							"href": "https://eu.api.blizzard.com/data/wow/talent-tree/793?namespace=static-12.1.5_70077-eu"
+						},
+						"name": "Druide"
+					},
+					"selected_spec_talent_tree": {
+						"key": {
+							"href": "https://eu.api.blizzard.com/data/wow/talent-tree/793/playable-specialization/102?namespace=static-12.1.5_70077-eu"
+						},
+						"name": "Équilibre"
+					},
+					"selected_hero_talent_tree": {
+						"key": {
+							"href": "https://eu.api.blizzard.com/data/wow/talent-tree/793/hero-talent/23?namespace=static-12.1.5_70077-eu"
+						},
+						"name": "Gardien du Bosquet",
+						"id": 23
+					}
+				}
+			]
+		}
+	],
+	"active_specialization": {
+		"key": {
+			"href": "https://eu.api.blizzard.com/data/wow/playable-specialization/102?namespace=static-12.1.5_70077-eu"
+		},
+		"name": "Équilibre",
+		"id": 102
+	},
+	"character": {
+		"key": {
+			"href": "https://eu.api.blizzard.com/profile/wow/character/tarren-mill/testchar?namespace=profile-eu"
+		},
+		"name": "Testchar",
+		"id": 1,
+		"realm": {
+			"key": {
+				"href": "https://eu.api.blizzard.com/data/wow/realm/1306?namespace=dynamic-eu"
+			},
+			"name": "Tarren Mill",
+			"id": 1306,
+			"slug": "tarren-mill"
+		}
+	},
+	"active_hero_talent_tree": {
+		"key": {
+			"href": "https://eu.api.blizzard.com/data/wow/talent-tree/793/hero-talent/23?namespace=static-12.1.5_70077-eu"
+		},
+		"name": "Gardien du Bosquet",
+		"id": 23
+	}
+}

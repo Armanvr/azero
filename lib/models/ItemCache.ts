@@ -3,7 +3,11 @@ import type { ItemSource } from '@/lib/types'
 
 const CACHE_TTL_SECONDS = 7 * 24 * 3600 // 7 days — item data rarely changes mid-patch
 
+/** Bump when the stored content changes: older documents (no `v` for the first shape, 2 had the « Raids » LFR label) are never read. */
+export const ITEM_CACHE_VERSION = 3
+
 export interface ItemCacheDoc {
+	v: number
 	itemId: number
 	name: string
 	type: string // "Armure", "Arme", "Bijou"…
@@ -16,17 +20,20 @@ export interface ItemCacheDoc {
 
 const itemSourceSchema = new Schema(
 	{
-		boss: String,
+		// `type` as a path name needs the nested form, or Mongoose reads it as the schema type
+		type: { type: String, required: true },
+		name: { type: String, required: true },
 		instance: String,
-		difficulty: String,
-		ilvlRange: String,
-		dropRate: String,
+		expansion: String,
+		difficulties: [String],
+		conditions: String,
 	},
 	{ _id: false },
 )
 
 const itemCacheSchema = new Schema<ItemCacheDoc>(
 	{
+		v: { type: Number, required: true },
 		itemId: { type: Number, required: true, unique: true, index: true },
 		name: String,
 		type: String,

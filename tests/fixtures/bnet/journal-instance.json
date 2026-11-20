@@ -1,0 +1,85 @@
+{
+	"_links": {
+		"self": {
+			"href": "https://eu.api.blizzard.com/data/wow/journal-instance/1273?namespace=static-12.1.5_70077-eu"
+		}
+	},
+	"id": 1273,
+	"name": "Palais des Nérub’ar",
+	"map": {
+		"name": "Palais des Nérub’ar",
+		"id": 2657
+	},
+	"encounters": [
+		{
+			"key": {
+				"href": "https://eu.api.blizzard.com/data/wow/journal-encounter/2607?namespace=static-12.1.5_70077-eu"
+			},
+			"name": "Ulgrax le Dévoreur",
+			"id": 2607
+		},
+		{
+			"key": {
+				"href": "https://eu.api.blizzard.com/data/wow/journal-encounter/2611?namespace=static-12.1.5_70077-eu"
+			},
+			"name": "L’horreur liée par le sang",
+			"id": 2611
+		}
+	],
+	"expansion": {
+		"key": {
+			"href": "https://eu.api.blizzard.com/data/wow/journal-expansion/514?namespace=static-12.1.5_70077-eu"
+		},
+		"name": "The War Within",
+		"id": 514
+	},
+	"location": {
+		"name": "Azj-Kahet",
+		"id": 14752
+	},
+	"modes": [
+		{
+			"mode": {
+				"type": "LFR",
+				"name": "Raids"
+			},
+			"players": 30,
+			"is_tracked": true
+		},
+		{
+			"mode": {
+				"type": "NORMAL",
+				"name": "Normal"
+			},
+			"players": 30,
+			"is_tracked": true
+		},
+		{
+			"mode": {
+				"type": "HEROIC",
+				"name": "Héroïque"
+			},
+			"players": 30,
+			"is_tracked": true
+		},
+		{
+			"mode": {
+				"type": "MYTHIC",
+				"name": "Mythique"
+			},
+			"players": 20,
+			"is_tracked": true
+		}
+	],
+	"media": {
+		"key": {
+			"href": "https://eu.api.blizzard.com/data/wow/media/journal-instance/1273?namespace=static-12.1.5_70077-eu"
+		},
+		"id": 1273
+	},
+	"minimum_level": 80,
+	"category": {
+		"type": "RAID"
+	},
+	"order_index": 1
+}

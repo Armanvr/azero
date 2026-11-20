@@ -1,9 +1,15 @@
 'use client'
 import { type CSSProperties, useEffect, useState } from 'react'
 import { RARITY_COLORS, RARITY_LABELS } from '@/lib/constants'
-import type { EquippedItem, ItemDetails } from '@/lib/types'
+import type { EquippedItem, ItemDetails, SourceType } from '@/lib/types'
 import styles from './ItemDetailPanel.module.css'
 import SourceCard from './SourceCard'
+
+const GROUPS: [SourceType, string][] = [
+	['raid', 'Raid'],
+	['dungeon', 'Donjon'],
+	['craft', 'Artisanat'],
+]
 
 interface Props {
 	item: EquippedItem
@@ -64,6 +70,7 @@ export default function ItemDetailPanel({ item, onClose }: Props) {
 				<div className={styles.chips}>
 					<span className={styles.ilvl}>iLvl {item.ilvl}</span>
 					<span className={styles.rarity}>{RARITY_LABELS[item.rarity]}</span>
+					{item.variant && <span className={styles.rarity}>{item.variant}</span>}
 					{item.enchant && <span className={styles.enchant}>✦ {item.enchant}</span>}
 				</div>
 			</div>
@@ -87,19 +94,45 @@ export default function ItemDetailPanel({ item, onClose }: Props) {
 					<div className={styles.empty}>Chargement…</div>
 				) : failed ? (
 					<div className={styles.empty}>Impossible de charger les sources.</div>
-				) : data?.sources.length ? (
-					<div className={styles.sourceList}>
-						{data.sources.map((s, i) => (
-							<SourceCard key={`${s.instance}-${s.boss}-${s.difficulty}`} source={s} index={i} />
-						))}
-					</div>
 				) : (
+					<>
+						{data?.pending && (
+							<div className={styles.empty}>
+								Recherche des sources en cours, réessayez dans un instant
+							</div>
+						)}
+						{GROUPS.map(([type, title]) => {
+							const list = (data?.sources ?? []).filter((s) => s.type === type)
+							return list.length ? (
+								<div key={type} className={styles.group}>
+									<h3 className={styles.groupTitle}>{title}</h3>
+									<div className={styles.sourceList}>
+										{list.map((s, i) => (
+											<SourceCard
+												key={`${s.type}|${s.instance}|${s.name}`}
+												source={s}
+												index={i}
+												variant={item.variant}
+											/>
+										))}
+									</div>
+								</div>
+							) : null
+						})}
+					</>
+				)}
+				{!loading && !failed && !data?.pending && !data?.sources.length && (
 					<div className={styles.empty}>
 						<div className={styles.emptyIcon} aria-hidden='true'>
 							🔍
 						</div>
-						Aucune source disponible
+						Aucune source identifiée dans les données Blizzard
 					</div>
+				)}
+				{data?.wowheadUrl && (
+					<a href={data.wowheadUrl} target='_blank' rel='noopener noreferrer' className={styles.wowhead}>
+						Voir sur Wowhead
+					</a>
 				)}
 			</div>
 		</aside>

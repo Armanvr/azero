@@ -5,7 +5,12 @@ export const store: Doc[] = []
 
 const matches = (d: Doc, filter: Doc) => Object.entries(filter).every(([k, v]) => d[k] === v)
 
-export async function connectDB() {}
+/** Flip `down` to make connectDB reject, like an unreachable Mongo. */
+export const dbState = { down: false }
+
+export async function connectDB() {
+	if (dbState.down) throw new Error('mongo down')
+}
 
 export const UserModel = {
 	findOne: (filter: Doc) => ({
@@ -97,7 +102,7 @@ export const SearchCacheModel = {
 
 // --- Blizzard static data cache (lib/models/BnetCache.ts, routed here by hooks.mjs) ---
 export const bnetCache: Doc[] = []
-export const makeBnetExpiry = () => new Date(Date.now() + 7 * 24 * 3600_000)
+export const makeBnetExpiry = (ttlMs = 7 * 24 * 3600_000) => new Date(Date.now() + ttlMs)
 export const BnetCacheModel = {
 	findOne: (filter: { key: string; expiresAt: { $gt: Date } }) => ({
 		lean: async () => {

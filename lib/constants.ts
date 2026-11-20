@@ -1,4 +1,4 @@
-import type { Difficulty, ItemRarity, WowClass } from './types'
+import type { ItemRarity, WowClass } from './types'
 
 export const RARITY_LABELS: Record<ItemRarity, string> = {
 	legendary: 'Légendaire',
@@ -15,17 +15,6 @@ export const RARITY_COLORS: Record<ItemRarity, string> = {
 	rare: 'var(--rarity-rare)',
 	uncommon: 'var(--green)',
 	common: 'var(--text-dim)',
-}
-
-export const DIFF_COLORS: Record<Difficulty, string> = {
-	LFR: '#4ade80',
-	Normal: '#38bdf8',
-	Heroïque: '#a855f7',
-	Mythique: '#f0b429',
-	'M+': '#f0b429',
-	Craft: '#f87171',
-	Quête: '#9ca3af',
-	Réputation: '#9ca3af',
 }
 
 export const CLASS_ID_TO_NAME: Record<number, WowClass> = {
