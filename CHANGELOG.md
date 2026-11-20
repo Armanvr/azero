@@ -6,6 +6,41 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 
 ---
 
+## [0.5.0] — 2026-11-20
+
+### Ajouté
+
+#### Onglet Talents
+- Fiche personnage : onglet **Talents** avec la spécialisation active, les arbres de classe, héroïque et de spécialisation en blocs distincts, disposés comme dans le jeu
+- Talents choisis mis en évidence avec leur rang, points investis par arbre, liens entre talents ; détail (nom, rang, description, choix) au survol, au focus et au clic
+- Changement de configuration lorsque le personnage en possède plusieurs (libellées « Configuration N », Blizzard ne fournissant pas leur nom)
+- `GET /api/characters/public/[realm]/[name]/talents` et `lib/services/talentService.ts` : profil `/specializations` croisé avec l'arbre statique et les icônes de sorts
+
+#### Sources d'obtention
+- Fiche d'objet : sources issues du journal Blizzard (boss, instance, extension, difficultés) et de l'artisanat (recette et métier), regroupées par type ; plusieurs sources possibles par objet, sans doublon
+- Variante de l'objet équipé (« Héroïque », « Mythique »…) affichée et mise en évidence parmi les difficultés
+- Lien « Voir sur Wowhead » sur chaque fiche ; états explicites « Aucune source identifiée dans les données Blizzard » et « Recherche des sources en cours »
+- `lib/services/sourceService.ts` : recherche du journal par identifiant d'objet et index des noms de recettes, construit en arrière-plan après la réponse
+
+#### Tests
+- 224 tests (48 de plus) : talents, sources d'obtention, index des recettes, variante d'équipement
+
+### Modifié
+
+- Fiche personnage : onglets Équipement / Talents réels, utilisables au clavier (flèches, Début, Fin)
+- Rendu du personnage agrandi : il remplit son cadre sans déformation, sur ordinateur comme sur mobile
+- `GET /api/items/[id]/sources` : renvoie `sources` (nouvelle forme), `pending` et `wowheadUrl`
+- Cache : tous les nouveaux appels Blizzard passent par `cachedGet` (talents 1 h, données statiques 7 jours) ; un échec ou un résultat dégradé n'est jamais mis en cache
+- Le mode de raid que Blizzard nomme « Raids » en français est affiché « Recherche de raid »
+
+### Supprimé
+
+- Onglets « Hauts faits » et « Collection » de la fiche personnage
+- Récupération des sources par le flux XML Wowhead (toujours vide, difficulté « Normal » codée en dur), dépendance `fast-xml-parser`, composant `DiffBadge`
+- Taux de butin et plage de niveau d'objet dans la fiche (jamais renseignés de façon fiable)
+
+---
+
 ## [0.4.0] — 2026-11-20
 
 ### Ajouté

@@ -1,0 +1,281 @@
+.tab {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	min-width: 0;
+}
+
+.state {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 16px;
+	padding: 64px 0;
+	color: var(--text-muted);
+	font-size: 14px;
+}
+
+.error {
+	color: var(--red);
+}
+
+.retry,
+.loadout {
+	height: 36px;
+	padding: 0 18px;
+	background: none;
+	border: 1px solid var(--gold-dark);
+	border-radius: 3px;
+	color: var(--gold-light);
+	font: 600 12px var(--font-display);
+	letter-spacing: 0.14em;
+	cursor: pointer;
+}
+
+.retry:hover,
+.loadout:hover,
+.loadout[aria-pressed="true"] {
+	border-color: var(--gold);
+	color: var(--text);
+}
+
+.loadout {
+	height: 30px;
+	padding: 0 14px;
+	letter-spacing: 0.08em;
+}
+
+.header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px 24px;
+}
+
+.spec {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.specIcon {
+	width: 36px;
+	height: 36px;
+	border: 1px solid var(--border-strong);
+	border-radius: 3px;
+}
+
+.specName {
+	margin: 0;
+	font-family: var(--font-display);
+	font-size: 20px;
+	font-weight: 600;
+	color: var(--text);
+}
+
+.hero {
+	font-size: 13px;
+	color: var(--gold);
+}
+
+.loadouts {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+/* trees are sized by their content: class and spec wide, hero narrow; they wrap when the row is full */
+.trees {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 24px;
+	align-items: flex-start;
+}
+
+.tree {
+	width: calc(var(--w) * 1px + 34px);
+	max-width: 100%;
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	min-width: 0;
+	padding: 16px;
+	border: 1px solid var(--border-soft);
+	border-radius: 3px;
+	background: var(--surface);
+}
+
+.treeTitle {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 8px;
+	margin: 0;
+	font-family: var(--font-display);
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.14em;
+	color: var(--text-dim);
+}
+
+.points {
+	font-family: var(--font-body);
+	font-size: 12px;
+	letter-spacing: 0;
+	color: var(--gold);
+}
+
+.scroll {
+	overflow-x: auto;
+	/* right: room for the rank badge that sticks 6px out of last-column nodes */
+	padding: 0 6px 6px 0;
+}
+
+/* fluid: nodes are placed in % of the grid and the svg has a viewBox, so everything scales with the card width.
+   min-width keeps nodes ~30px on phones: the .scroll wrapper scrolls instead of shrinking further */
+.grid {
+	position: relative;
+	width: 100%;
+	min-width: calc(var(--w) * 0.7px);
+}
+
+.links {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+}
+
+.link {
+	stroke: var(--border-strong);
+	stroke-width: 2;
+}
+
+.linkOn {
+	stroke: var(--gold);
+	stroke-width: 2;
+}
+
+.list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.node {
+	position: relative;
+	width: 44px;
+	height: 44px;
+	padding: 0;
+	border: 1px solid var(--border-strong);
+	border-radius: 50%;
+	background: var(--bg-deep);
+	cursor: pointer;
+	opacity: 0.35;
+	filter: grayscale(1);
+}
+
+.grid .node {
+	position: absolute;
+	height: auto;
+	aspect-ratio: 1;
+}
+
+.node:hover,
+.node:focus-visible,
+.node[aria-pressed="true"] {
+	border-color: var(--gold-light);
+	opacity: 1;
+	filter: none;
+	outline: none;
+}
+
+.node:focus-visible {
+	box-shadow: 0 0 0 2px var(--gold);
+}
+
+.node.selected {
+	border-color: var(--gold);
+	opacity: 1;
+	filter: none;
+}
+
+.icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	border-radius: 50%;
+	object-fit: cover;
+	font-family: var(--font-display);
+	font-size: 14px;
+	color: var(--text-dim);
+}
+
+.badge {
+	position: absolute;
+	right: -6px;
+	bottom: -6px;
+	padding: 1px 4px;
+	border: 1px solid var(--gold);
+	border-radius: 3px;
+	background: var(--bg-deep);
+	font-size: 10px;
+	line-height: 1.2;
+	color: var(--gold-light);
+	font-variant-numeric: tabular-nums;
+}
+
+.detail {
+	min-height: 96px;
+	padding: 12px 14px;
+	border: 1px solid var(--border);
+	border-radius: 3px;
+	background: var(--surface2);
+	font-size: 12.5px;
+	color: var(--text-dim);
+}
+
+.detailName {
+	font-family: var(--font-display);
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--text);
+}
+
+.detailRank {
+	margin: 2px 0 6px;
+	font-size: 11.5px;
+	color: var(--gold);
+}
+
+.detailDesc {
+	line-height: 1.45;
+}
+
+.choice {
+	margin-top: 8px;
+	padding-left: 10px;
+	border-left: 2px solid var(--border-strong);
+	opacity: 0.6;
+}
+
+.choiceOn {
+	border-left-color: var(--gold);
+	opacity: 1;
+}
+
+.choiceName {
+	color: var(--text);
+}
+
+.choiceMark {
+	color: var(--gold);
+}
+
+.hint {
+	color: var(--text-muted);
+}

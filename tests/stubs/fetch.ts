@@ -24,8 +24,7 @@ export function mockFetch(routes: Route[]) {
 			const reply = typeof route.reply === 'function' ? await route.reply() : route.reply
 			if (reply instanceof Error) throw reply
 			const status = reply.status ?? 200
-			// A string body is sent as is (Wowhead answers XML)
-			return new Response(typeof reply.body === 'string' ? reply.body : JSON.stringify(reply.body ?? {}), {
+			return new Response(JSON.stringify(reply.body ?? {}), {
 				status,
 				headers: { 'content-type': 'application/json' },
 			})

@@ -1,7 +1,5 @@
 export type ItemRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'
 
-export type Difficulty = 'LFR' | 'Normal' | 'Heroïque' | 'Mythique' | 'M+' | 'Craft' | 'Réputation' | 'Quête'
-
 export type WowClass =
 	| 'Paladin'
 	| 'Mage'
@@ -17,12 +15,15 @@ export type WowClass =
 	| 'Chevalier de la mort'
 	| 'Evocateur'
 
+export type SourceType = 'raid' | 'dungeon' | 'craft'
+
 export interface ItemSource {
-	boss: string
-	instance: string
-	difficulty: Difficulty
-	ilvlRange: string
-	dropRate: string
+	type: SourceType
+	name: string // boss or recipe
+	instance?: string
+	expansion?: string
+	difficulties?: string[] // Blizzard mode names of the instance
+	conditions?: string // e.g. required profession
 }
 
 export interface ItemDetails {
@@ -30,6 +31,8 @@ export interface ItemDetails {
 	slot: string
 	stats: string[]
 	sources: ItemSource[]
+	pending: boolean // true: an index is being built, sources are not final
+	wowheadUrl: string
 }
 
 export interface EquippedItem {
@@ -41,6 +44,41 @@ export interface EquippedItem {
 	enchant: string | null
 	rarity: ItemRarity
 	iconUrl?: string
+	variant?: string // Blizzard name_description, e.g. « Héroïque »
+}
+
+export interface TalentNode {
+	id: number
+	row: number
+	col: number
+	maxRank: number
+	rank: number // 0 = not selected
+	name: string
+	description?: string
+	icon?: string
+	unlocks: number[]
+	choices?: Array<{ name: string; description?: string; icon?: string; selected: boolean }>
+}
+
+export interface TalentTree {
+	kind: 'class' | 'spec' | 'hero'
+	name: string
+	spent: number
+	nodes: TalentNode[]
+}
+
+export interface TalentLoadout {
+	name: string
+	active: boolean
+	code?: string
+	trees: TalentTree[]
+}
+
+export interface CharacterTalents {
+	spec: string
+	specIcon?: string
+	heroTree?: string
+	loadouts: TalentLoadout[]
 }
 
 export interface CharacterStats {

@@ -22,6 +22,6 @@ export const BnetCacheModel =
 	(mongoose.models.BnetCache as mongoose.Model<BnetCacheDoc>) ??
 	mongoose.model<BnetCacheDoc>('BnetCache', bnetCacheSchema)
 
-export function makeBnetExpiry(): Date {
-	return new Date(Date.now() + CACHE_TTL_SECONDS * 1000)
+export function makeBnetExpiry(ttlMs = CACHE_TTL_SECONDS * 1000): Date {
+	return new Date(Date.now() + ttlMs)
 }

@@ -110,20 +110,21 @@ azero/
 │     ├─ auth/bnet/{route,callback,disconnect}/
 │     ├─ characters/route.ts               # Liste personnages (auth)
 │     ├─ characters/[id]/enrich/route.ts
-│     ├─ characters/public/[realm]/[name]/ # Lookup public (cache-first)
-│     ├─ items/[id]/sources/route.ts       # Stats + sources WowHead
+│     ├─ characters/public/[realm]/[name]/ # Lookup public (cache-first) + talents/
+│     ├─ items/[id]/sources/route.ts       # Stats + sources (journal Blizzard, recettes)
 │     ├─ professions/route.ts              # Métiers des personnages du compte (auth)
 │     └─ profile/{route,favorites,recovery-code}/
 ├─ proxy.ts                        # Garde de routes (protège /metiers, /planning, /profil)
 ├─ components/
 │  ├─ layout/         # Header (navigation, recherche, avatar)
 │  ├─ character/      # CharAvatar
-│  ├─ equipment/      # ItemSlot, ItemDetailPanel, SourceCard, DiffBadge
+│  ├─ equipment/      # ItemSlot, ItemDetailPanel, SourceCard
+│  ├─ talents/        # TalentsTab, TalentTreeView
 │  ├─ profile/        # CharacterCard (cliquable → fiche)
 │  └─ ui/             # Button, Input, RecoveryCode
 ├─ lib/
 │  ├─ types.ts        # Types métier (Character, EquippedItem, Profession…)
-│  ├─ constants.ts    # Couleurs et libellés rareté / classe / difficulté
+│  ├─ constants.ts    # Couleurs et libellés rareté / classe
 │  ├─ characterPath.ts # Liens vers une fiche, slug de royaume, URL d'API depuis useParams
 │  ├─ auth.ts         # bcrypt + JWT + cookies
 │  ├─ session.ts      # Secret + vérification JWT (partagé avec proxy.ts)
@@ -137,7 +138,9 @@ azero/
 │     ├─ bnetToken.ts      # Token client credentials BNet + appels avec statut, timeout et relance sur 401
 │     ├─ realm.ts          # Slug réel d'un royaume via l'index Blizzard (cache mémoire 24h)
 │     ├─ character.ts      # Mapping personnage + équipement BNet (partagé par les routes)
-│     └─ itemService.ts    # Orchestration Blizzard + WowHead + cache
+│     ├─ itemService.ts    # Objet Blizzard + sources + cache
+│     ├─ sourceService.ts  # Sources : journal Blizzard (raid, donjon) et index des recettes
+│     └─ talentService.ts  # Talents d'un personnage (profil + arbre statique Blizzard)
 ├─ tests/                          # Tests node:test + stubs (base, cookies, fetch)
 ├─ docs/
 │  └─ BNET_API_GUIDE.md

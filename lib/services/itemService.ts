@@ -1,174 +1,76 @@
-import { XMLParser } from 'fast-xml-parser'
 import { connectDB } from '@/lib/db'
 import type { ItemCacheDoc } from '@/lib/models/ItemCache'
-import { BNET_STAT_LABELS, ItemCacheModel, makeItemExpiry } from '@/lib/models/ItemCache'
-import type { Difficulty, ItemSource } from '@/lib/types'
-import { bnetFetch, EU_BASE, getBnetClientToken } from './bnetToken'
-
-const WOWHEAD_BASE = 'https://www.wowhead.com'
-
-// ─── Blizzard item fetch ────────────────────────────────────────────────────
+import { BNET_STAT_LABELS, ITEM_CACHE_VERSION, ItemCacheModel, makeItemExpiry } from '@/lib/models/ItemCache'
+import { cachedGet, STATIC } from './professionService'
+import { findCraftSources, findEncounterSources } from './sourceService'
 
 interface BnetStatEntry {
 	type?: { type?: string; name?: string }
 	value?: number
-	display?: { display_string?: string }
 }
 
-interface BnetItemData {
-	name?: string
-	item_class?: { name?: string }
-	inventory_type?: { name?: string }
-	preview_item?: {
-		item_level?: { value?: number }
-		stats?: BnetStatEntry[]
-	}
+interface BnetItem {
+	name: string
+	type: string
+	slot: string
+	stats: string[]
 }
 
-async function fetchBnetItemData(
-	itemId: number,
-): Promise<{ name: string; type: string; slot: string; stats: string[] } | null> {
-	const token = await getBnetClientToken()
-	if (!token) return null
-
-	const ns = 'namespace=static-eu&locale=fr_FR'
-	const data = (await bnetFetch(`${EU_BASE}/data/wow/item/${itemId}?${ns}`, token)) as BnetItemData | null
-
-	if (!data) return null
-
-	const stats: string[] = (data.preview_item?.stats ?? [])
-		.map((s) => {
+const getBnetItem = (itemId: number) =>
+	cachedGet<BnetItem>(`item:${itemId}`, `/data/wow/item/${itemId}?${STATIC}`, (raw) => ({
+		name: raw.name ?? '',
+		type: raw.item_class?.name ?? '',
+		slot: raw.inventory_type?.name ?? '',
+		stats: ((raw.preview_item?.stats ?? []) as BnetStatEntry[]).flatMap((s) => {
 			const label = s.type?.type ? (BNET_STAT_LABELS[s.type.type] ?? s.type.name ?? s.type.type) : null
-			if (!label || s.value == null) return null
-			return `${s.value.toLocaleString('fr-FR')} ${label}`
-		})
-		.filter((s): s is string => s !== null)
+			return label && s.value != null ? [`${s.value.toLocaleString('fr-FR')} ${label}`] : []
+		}),
+	}))
 
-	return {
-		name: data.name ?? '',
-		type: data.item_class?.name ?? '',
-		slot: data.inventory_type?.name ?? '',
-		stats,
-	}
-}
-
-// ─── WowHead XML fetch ──────────────────────────────────────────────────────
-
-interface WowheadDropEntry {
-	'@_id'?: string | number
-	'@_n'?: string
-	e?: { '@_n'?: string | number } | Array<{ '@_n'?: string | number }>
-}
-
-interface WowheadItem {
-	droppedBy?: {
-		n?: WowheadDropEntry | WowheadDropEntry[]
-	}
-	createdBy?: unknown
-}
-
-interface WowheadXml {
-	wowhead?: {
-		item?: WowheadItem
-	}
-}
-
-async function fetchWowheadSources(itemId: number): Promise<ItemSource[]> {
-	const url = `${WOWHEAD_BASE}/item=${itemId}&xml`
-
-	let xml: string
-	try {
-		const res = await fetch(url, {
-			headers: {
-				'User-Agent': 'Mozilla/5.0 (compatible; Azero/1.0; +https://github.com)',
-				Accept: 'text/xml,application/xml',
-			},
-			signal: AbortSignal.timeout(8000),
-		})
-		if (!res.ok) return []
-		xml = await res.text()
-	} catch {
-		return []
-	}
-
-	try {
-		const parser = new XMLParser({
-			ignoreAttributes: false,
-			attributeNamePrefix: '@_',
-			allowBooleanAttributes: true,
-			parseAttributeValue: true,
-			isArray: (name) => name === 'n' || name === 'e',
-		})
-
-		const parsed = parser.parse(xml) as WowheadXml
-		const item = parsed?.wowhead?.item
-		if (!item?.droppedBy) return []
-
-		const npcEntries = item.droppedBy.n
-		if (!npcEntries) return []
-
-		const entries = Array.isArray(npcEntries) ? npcEntries : [npcEntries]
-
-		return entries
-			.filter((entry) => entry['@_n'])
-			.map((entry) => {
-				const boss = String(entry['@_n'] ?? '')
-				// WowHead drop rate is stored as drops-per-10000 in the <e n="..."> child
-				const eArr = Array.isArray(entry.e) ? entry.e : entry.e ? [entry.e] : []
-				const rawRate = eArr[0]?.['@_n']
-				const dropRate = rawRate != null && Number(rawRate) > 0 ? `~${(Number(rawRate) / 100).toFixed(1)}%` : ''
-
-				return {
-					boss,
-					instance: '', // WowHead XML doesn't embed zone name directly
-					difficulty: 'Normal' as Difficulty,
-					ilvlRange: '',
-					dropRate,
-				} satisfies ItemSource
-			})
-	} catch {
-		return []
-	}
-}
-
-// ─── Public entry point ─────────────────────────────────────────────────────
-
-export async function getItemData(itemId: number): Promise<ItemCacheDoc | null> {
-	// 1. Check MongoDB cache
+/**
+ * The item and where it comes from. Null only when the Blizzard item call fails. `pending` means a source lookup
+ * is not final (recipe index not built yet, or a Blizzard call failed): the result is then not stored, so it is
+ * never mistaken for « no source ».
+ */
+export async function getItemData(itemId: number): Promise<(ItemCacheDoc & { pending: boolean }) | null> {
+	// 1. MongoDB cache. Only documents of the current shape: older ones expire by TTL and are never read.
 	try {
 		await connectDB()
 		const cached = await ItemCacheModel.findOne({
 			itemId,
+			v: ITEM_CACHE_VERSION,
 			expiresAt: { $gt: new Date() },
 		}).lean<ItemCacheDoc>()
 
-		if (cached) return cached
+		if (cached) return { ...cached, pending: false }
 	} catch {
 		// DB unavailable — fall through
 	}
 
-	// 2. Fetch from Blizzard + WowHead in parallel
-	const [bnetData, wowheadSources] = await Promise.all([fetchBnetItemData(itemId), fetchWowheadSources(itemId)])
-
-	if (!bnetData && wowheadSources.length === 0) return null
+	// 2. Blizzard
+	const item = await getBnetItem(itemId)
+	if (!item.data) return null
+	const [encounters, crafts] = await Promise.all([
+		findEncounterSources(itemId),
+		findCraftSources(itemId, item.data.name),
+	])
 
 	const doc: ItemCacheDoc = {
+		v: ITEM_CACHE_VERSION,
 		itemId,
-		name: bnetData?.name ?? '',
-		type: bnetData?.type ?? '',
-		slot: bnetData?.slot ?? '',
-		stats: bnetData?.stats ?? [],
-		sources: wowheadSources,
+		...item.data,
+		sources: [...encounters.sources, ...crafts.sources],
 		fetchedAt: new Date(),
 		expiresAt: makeItemExpiry(),
 	}
+	const pending = encounters.pending || crafts.pending
 
-	// 3. Save to cache (fire-and-forget), only when Blizzard answered: an empty name would be served for 7 days
-	if (bnetData) {
+	// 3. Save to cache (fire-and-forget), only when every lookup is final
+	if (!pending) {
 		connectDB()
 			.then(() => ItemCacheModel.findOneAndUpdate({ itemId }, { $set: doc }, { upsert: true, new: true }))
 			.catch(() => {})
 	}
 
-	return doc
+	return { ...doc, pending }
 }

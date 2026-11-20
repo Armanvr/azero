@@ -65,6 +65,7 @@ interface BnetEquippedItem {
 	item: { id: number }
 	quality: { type: string }
 	name: string
+	name_description?: { display_string?: string }
 	level: { value: number }
 	enchantments?: Array<{ display_string: string; enchantment_slot: { type: string } }>
 }
@@ -115,6 +116,7 @@ export async function mapEquipment(
 				else trinket1Used = true
 			}
 
+			const variant = stripMarkup(raw.name_description?.display_string ?? '')
 			return {
 				id: slotId,
 				label: SLOT_LABELS[slotId] ?? slotId,
@@ -129,6 +131,7 @@ export async function mapEquipment(
 					) || null,
 				rarity: QUALITY_MAP[raw.quality?.type] ?? 'common',
 				iconUrl: iconByItemId.get(raw.item?.id ?? 0),
+				...(variant && { variant }),
 			} satisfies EquippedItem
 		})
 		.filter((s) => s !== null)

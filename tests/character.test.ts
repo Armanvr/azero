@@ -118,6 +118,25 @@ test('mapEquipment: raw UI markup is stripped from the enchant text', async () =
 	)
 })
 
+test('mapEquipment keeps the Blizzard variant label', async () => {
+	const out = await mapEquipment(
+		{
+			equipped_items: [
+				item('HEAD', 1, { name_description: { display_string: 'Héroïque' } }),
+				item('NECK', 2, { name_description: { display_string: '|cnIQ4:Mythique|r' } }),
+				item('BACK', 3, { name_description: { display_string: '  ' } }),
+				item('WRIST', 4),
+			],
+		},
+		'tok',
+	)
+	assert.deepEqual(
+		out.slotsLeft.map((s) => s.variant),
+		['Héroïque', 'Mythique', undefined, undefined],
+	)
+	assert.equal('variant' in out.slotsLeft[3], false)
+})
+
 test('mapEquipment: an item worn twice has its icon fetched once', async () => {
 	const out = await mapEquipment({ equipped_items: [item('FINGER_1', 7), item('FINGER_2', 7)] }, 'tok')
 	assert.equal(requested.length, 1)

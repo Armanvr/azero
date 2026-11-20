@@ -6,7 +6,7 @@
 	animation: fadeIn 0.2s ease calc(var(--i) * 0.06s) both;
 }
 
-.boss {
+.name {
 	margin-bottom: 6px;
 	font-family: var(--font-display);
 	font-size: 13px;
@@ -23,9 +23,12 @@
 	color: var(--text-dim);
 }
 
-.instance span,
-.ilvl span {
+.instance > span[aria-hidden] {
 	opacity: 0.5;
+}
+
+.expansion {
+	color: var(--text-muted);
 }
 
 .meta {
@@ -35,21 +38,23 @@
 	flex-wrap: wrap;
 }
 
-.ilvl {
-	font-size: 11.5px;
-	color: var(--text-muted);
-	display: flex;
-	align-items: center;
-	gap: 3px;
-}
-
-.drop {
-	margin-left: auto;
+.pill {
 	font-size: 11.5px;
 	color: var(--text-muted);
 	padding: 2px 6px;
 	border-radius: 3px;
 	border: 1px solid var(--border-soft);
+}
+
+.pillOn {
+	color: var(--gold-light);
+	border-color: var(--gold);
+}
+
+.conditions {
+	margin-top: 8px;
+	font-size: 11.5px;
+	color: var(--text-muted);
 }
 
 @keyframes fadeIn {

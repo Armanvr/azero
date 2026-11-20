@@ -8,8 +8,8 @@ import { bnetGet, EU_BASE, getBnetClientToken } from './bnetToken'
 /** Pêche and Archéologie are progression only: no recipe catalog, no known recipes. */
 export const NO_RECIPE_PROFESSIONS = new Set([356, 794])
 
-const STATIC = 'namespace=static-eu&locale=fr_FR'
-const STATIC_MEDIA = 'namespace=static-eu'
+export const STATIC = 'namespace=static-eu&locale=fr_FR'
+export const STATIC_MEDIA = 'namespace=static-eu'
 // Status reported when no Blizzard token can be obtained (credentials missing or rejected)
 const NO_TOKEN = 503
 
@@ -26,10 +26,17 @@ export function parseId(s: string): number | null {
 }
 
 /**
- * Blizzard static data through the Mongo cache. The mapped value is what gets cached; a Blizzard failure is never
- * cached, and an unavailable DB just means every call goes to Blizzard.
+ * Every Blizzard call goes through here. The mapped value is what gets cached (7 days unless `ttlMs`); a Blizzard
+ * failure is never cached, and an unavailable DB just means every call goes to Blizzard. `map` may be async (it can
+ * itself call other cached helpers); if it throws, the result is a 502 and nothing is cached.
  */
-async function cachedGet<T>(key: string, path: string, map: (raw: BnetResult['data']) => T): Promise<StaticResult<T>> {
+export async function cachedGet<T>(
+	key: string,
+	path: string,
+	map: (raw: BnetResult['data']) => T | Promise<T>,
+	ttlMs?: number,
+	cacheable: (data: T) => boolean = () => true,
+): Promise<StaticResult<T>> {
 	try {
 		await connectDB()
 		const hit = await BnetCacheModel.findOne({ key, expiresAt: { $gt: new Date() } }).lean<BnetCacheDoc>()
@@ -45,13 +52,14 @@ async function cachedGet<T>(key: string, path: string, map: (raw: BnetResult['da
 
 	let data: T
 	try {
-		data = map(raw)
+		data = await map(raw)
 	} catch {
 		// Body that is not shaped like Blizzard's: an upstream failure, not cacheable
 		return { status: 502, data: null }
 	}
+	if (!cacheable(data)) return { status, data }
 	try {
-		await BnetCacheModel.updateOne({ key }, { $set: { data, expiresAt: makeBnetExpiry() } }, { upsert: true })
+		await BnetCacheModel.updateOne({ key }, { $set: { data, expiresAt: makeBnetExpiry(ttlMs) } }, { upsert: true })
 	} catch {
 		// Cache write is best effort
 	}
@@ -61,7 +69,7 @@ async function cachedGet<T>(key: string, path: string, map: (raw: BnetResult['da
 const ref = ({ id, name }: RecipeRef): RecipeRef => ({ id, name })
 
 /** First media asset (`key` is unreliable). '' when there is none or when it is not an https URL (it feeds a redirect). */
-const mapIcon = (raw: BnetResult['data']): string => {
+export const mapIcon = (raw: BnetResult['data']): string => {
 	const url = raw.assets?.[0]?.value
 	return typeof url === 'string' && url.startsWith('https://') ? url : ''
 }

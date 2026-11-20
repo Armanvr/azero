@@ -88,7 +88,15 @@
 	color: var(--text-muted);
 	flex: none;
 	white-space: nowrap;
-	cursor: default;
+	padding: 0;
+	border: 0;
+	background: none;
+	cursor: pointer;
+}
+
+.tab:hover,
+.tab:focus-visible {
+	color: var(--text);
 }
 
 .tabActive {
@@ -245,6 +253,7 @@
 	display: grid;
 	grid-template-columns: 200px minmax(0, 1fr) 200px;
 	gap: 28px;
+	align-items: stretch;
 }
 
 .slots {
@@ -255,7 +264,8 @@
 
 .figure {
 	position: relative;
-	height: 466px;
+	min-height: 466px;
+	height: 100%;
 	display: flex;
 	align-items: flex-end;
 	justify-content: center;
@@ -265,8 +275,10 @@
 }
 
 .render {
-	object-fit: contain;
-	object-position: bottom;
+	object-fit: cover;
+	object-position: center 20%;
+	transform: scale(1.35);
+	transform-origin: center 35%;
 }
 
 .weapons {
@@ -373,7 +385,9 @@
 	.figure {
 		grid-column: 1 / -1;
 		grid-row: 1;
-		height: 360px;
+		aspect-ratio: 3 / 4;
+		height: auto;
+		min-height: 0;
 	}
 
 	.selection {
